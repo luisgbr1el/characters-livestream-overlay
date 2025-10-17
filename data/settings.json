@@ -1,0 +1,12 @@
+{
+    "general": {
+        "language": "pt-BR"
+    },
+    "characters": {
+        "font_size": 14,
+        "font_file_path": null,
+        "font_color": "#FFFFFF",
+        "icons_size": 64,
+        "health_icon_file_path": null
+    }
+}
