@@ -12,7 +12,10 @@ export function readJson(relPath, fallback = null) {
       return null;
     }
     const raw = fs.readFileSync(full, "utf-8");
-    return JSON.parse(raw || "null");
+    if (!raw || raw.trim() === "") {
+      return fallback;
+    }
+    return JSON.parse(raw);
   } catch (err) {
     console.error("readJson error:", err);
     return fallback;
@@ -21,6 +24,11 @@ export function readJson(relPath, fallback = null) {
 
 export function writeJson(relPath, data) {
   const full = path.resolve(process.cwd(), relPath);
-  fs.mkdirSync(path.dirname(full), { recursive: true });
-  fs.writeFileSync(full, JSON.stringify(data, null, 2), "utf-8");
+  try {
+    fs.mkdirSync(path.dirname(full), { recursive: true });
+    const jsonString = JSON.stringify(data, null, 2);
+    fs.writeFileSync(full, jsonString, "utf-8");
+  } catch (error) {
+    throw error;
+  }
 }

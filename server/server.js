@@ -16,6 +16,8 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.set('json spaces', 2);
+
 const uploadDir = path.join(process.cwd(), "server", "uploads");
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -47,21 +49,52 @@ readJson(SETTINGS_PATH, defaultSettings);
 readJson(CHARACTERS_PATH, defaultCharacters);
 
 app.get("/api/settings", (req, res) => {
-  const settings = readJson(SETTINGS_PATH, defaultSettings);
-  res.json(settings);
+  try {
+    const settings = readJson(SETTINGS_PATH, defaultSettings);
+    res.json(settings);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to read settings" });
+  }
 });
 
 app.put("/api/settings", (req, res) => {
-  const newSettings = { ...readJson(SETTINGS_PATH, defaultSettings), ...req.body };
-  writeJson(SETTINGS_PATH, newSettings);
-  io.emit("settingsUpdated", newSettings);
-  res.json(newSettings);
+  try {
+    const currentSettings = readJson(SETTINGS_PATH, defaultSettings);
+    const settingsBody = { ...req.body };
+    for (const key in settingsBody) {
+      if (!currentSettings[key]) {
+        return res.status(400).json({ error: `This key is not a setting: ${key}` });
+      }
+    }
+    const newSettings = { ...currentSettings, ...settingsBody };
+    writeJson(SETTINGS_PATH, newSettings);
+    io.emit("settingsUpdated", newSettings);
+    res.status(201).json(newSettings);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to update settings" });
+  }
 });
 
-app.post("/api/upload", upload.single("file"), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: "No file uploaded" });
-  const url = `/uploads/${req.file.filename}`;
-  res.json({ url });
+app.post("/api/upload", (req, res) => {
+  upload.single("file")(req, res, (err) => {
+    if (err) {
+      console.error("Multer error:", err);
+      if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+        return res.status(400).json({ error: "Field name must be 'file'" });
+      }
+      if (err.message.includes('Field name missing')) {
+        return res.status(400).json({ error: "Field name 'file' is required" });
+      }
+      return res.status(400).json({ error: err.message });
+    }
+    
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+    
+    const url = `/uploads/${req.file.filename}`;
+    res.json({ url });
+  });
 });
 
 app.get("/api/characters", (req, res) => {
@@ -73,11 +106,11 @@ app.post("/api/characters", (req, res) => {
   const chars = readJson(CHARACTERS_PATH, defaultCharacters);
   const newChar = req.body;
   if (!newChar.name) return res.status(400).json({ error: "name required" });
-  if (chars.find(c => c.name === newChar.name)) return res.status(409).json({ error: "character exists" });
+  if (chars.find(c => c.name === newChar.name)) return res.status(409).json({ error: "Character already exists" });
   chars.push(newChar);
   writeJson(CHARACTERS_PATH, chars);
   io.emit("charactersUpdated", chars);
-  res.status(201).json(newChar);
+  res.status(201).json(chars);
 });
 
 app.put("/api/characters/:name", (req, res) => {
