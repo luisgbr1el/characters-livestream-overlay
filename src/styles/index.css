@@ -1,0 +1,135 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  font-family: "Poppins", sans-serif;
+
+  color-scheme: light dark;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  --text-color: aliceblue;
+  --primary-color: #bb00ff;
+  --background-color: #212121;
+  --secondary-color: rgb(41, 41, 41);
+  --border-color: rgb(128, 128, 128);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  font-weight: 500;
+  color: var(--text-color);
+  text-decoration: inherit;
+}
+a:hover {
+  color: var(--primary-color);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  color: var(--text-color);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 10pt;
+  display: flex;
+  gap: 3px;
+  outline: none;
+  font-family: inherit;
+  background-color: var(--secondary-color);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: 0.25s;
+}
+button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-color);
+}
+
+.button-text {
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
+
+svg {
+  vertical-align: middle;
+}
+
+.navbar {
+  width: 100%;
+  justify-content: flex-end;
+  padding: 10px;
+  display: flex;
+  border-bottom: 1px solid var(--secondary-color);
+  box-sizing: border-box;
+}
+
+.characters {
+  padding: 10px;
+  margin: 0;
+  width: 100%;
+}
+
+
+.header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.list {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 20px;
+  row-gap: 5px;
+  width: 100%;
+  margin-top: 10px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.list::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+.list::-webkit-scrollbar-thumb {
+  background-color: var(--secondary-color);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.list::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-color);
+}
+
+.title {
+  padding: 0;
+  margin: 0;
+}

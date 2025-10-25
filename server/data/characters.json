@@ -3,6 +3,24 @@
     "name": "Victor",
     "hp": 15,
     "maxHp": 20,
-    "icon": "/uploads/heart-1.png"
+    "icon": "/uploads/victor.png"
+  },
+  {
+    "name": "Ernesto",
+    "hp": 3,
+    "maxHp": 20,
+    "icon": "/uploads/victor.png"
+  },
+  {
+    "name": "Ricardo",
+    "hp": 7,
+    "maxHp": 20,
+    "icon": "/uploads/victor.png"
+  },
+  {
+    "name": "Mikhail",
+    "hp": 13,
+    "maxHp": 20,
+    "icon": "/uploads/victor.png"
   }
 ]
