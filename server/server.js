@@ -4,6 +4,7 @@ import { Server } from "socket.io";
 import cors from "cors";
 import multer from "multer";
 import path from "path";
+import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
 import { readJson, writeJson } from "./utils/storage.js";
 
@@ -35,13 +36,88 @@ app.use("/uploads", express.static(uploadDir));
 const SETTINGS_PATH = "./server/data/settings.json";
 const CHARACTERS_PATH = "./server/data/characters.json";
 
+let temporaryFiles = new Map(); // sessionId -> Set<filePath>
+let fileToSession = new Map(); // filePath -> sessionId
+
+const deleteFile = (filePath) => {
+  try {
+    if (fs.existsSync(filePath))
+      fs.unlinkSync(filePath);
+  } catch (error) {
+    console.error(`Erro ao deletar arquivo ${filePath}:`, error);
+  }
+};
+
+const registerTemporaryFile = (sessionId, fileName) => {
+  const fullPath = path.join(uploadDir, fileName);
+  
+  if (!temporaryFiles.has(sessionId)) {
+    temporaryFiles.set(sessionId, new Set());
+  }
+  
+  temporaryFiles.get(sessionId).add(fileName);
+  fileToSession.set(fileName, sessionId);
+};
+
+const confirmFile = (fileName) => {
+  const sessionId = fileToSession.get(fileName);
+  if (sessionId && temporaryFiles.has(sessionId)) {
+    temporaryFiles.get(sessionId).delete(fileName);
+    fileToSession.delete(fileName);
+  }
+};
+
+const cleanupSession = (sessionId) => {
+  if (temporaryFiles.has(sessionId)) {
+    const files = temporaryFiles.get(sessionId);
+    files.forEach(fileName => {
+      const fullPath = path.join(uploadDir, fileName);
+      deleteFile(fullPath);
+      fileToSession.delete(fileName);
+    });
+    temporaryFiles.delete(sessionId);
+  }
+};
+
+const cleanupOldFiles = () => {
+  try {
+    const files = fs.readdirSync(uploadDir);
+    const now = Date.now();
+    const maxAge = 24 * 60 * 60 * 1000;
+    
+    files.forEach(fileName => {
+      const filePath = path.join(uploadDir, fileName);
+      const stats = fs.statSync(filePath);
+      const age = now - stats.mtime.getTime();
+      
+      if (age > maxAge && fileToSession.has(fileName)) {
+        deleteFile(filePath);
+        
+        const sessionId = fileToSession.get(fileName);
+        if (sessionId && temporaryFiles.has(sessionId)) {
+          temporaryFiles.get(sessionId).delete(fileName);
+        }
+        fileToSession.delete(fileName);
+      }
+    });
+  } catch (error) {
+    console.error('Erro na limpeza automática:', error);
+  }
+};
+
+setInterval(cleanupOldFiles, 60 * 60 * 1000);
+
 const defaultSettings = {
   general: { language: "pt-BR" },
   characters: {
+    show_icon: true,
+    show_health: true,
+    show_name: true,
     font_size: 14,
-    font_file_path: null,
+    font_family: "Arial",
     font_color: "#FFFFFF",
     icons_size: 64,
+    character_icon_size: 170,
     health_icon_file_path: null
   }
 };
@@ -67,6 +143,23 @@ app.put("/api/settings", (req, res) => {
         return res.status(400).json({ error: `This key is not a setting: ${key}` });
       }
     }
+    
+    if (settingsBody.characters && settingsBody.characters.health_icon_file_path) {
+      const newIconPath = settingsBody.characters.health_icon_file_path;
+      const currentIconPath = currentSettings.characters.health_icon_file_path;
+      
+      if (currentIconPath && currentIconPath !== newIconPath) {
+        const oldFileName = currentIconPath.replace('/uploads/', '');
+        const oldFilePath = path.join(uploadDir, oldFileName);
+        deleteFile(oldFilePath);
+      }
+      
+      if (newIconPath) {
+        const newFileName = newIconPath.replace('/uploads/', '');
+        confirmFile(newFileName);
+      }
+    }
+    
     const newSettings = { ...currentSettings, ...settingsBody };
     writeJson(SETTINGS_PATH, newSettings);
     io.emit("settingsUpdated", newSettings);
@@ -93,9 +186,48 @@ app.post("/api/upload", (req, res) => {
       return res.status(400).json({ error: "No file uploaded" });
     }
 
-    const url = `/uploads/${req.file.filename}`;
-    res.json({ url });
+    const sessionId = req.headers['x-session-id'] || 'default';
+    const fileName = req.file.filename;
+    const url = `/uploads/${fileName}`;
+    
+    registerTemporaryFile(sessionId, fileName);
+    
+    res.json({ url, fileName });
   });
+});
+
+app.post("/api/confirm-file", (req, res) => {
+  const { fileName } = req.body;
+  if (!fileName) {
+    return res.status(400).json({ error: "fileName is required" });
+  }
+  
+  confirmFile(fileName);
+  res.json({ success: true });
+});
+
+app.delete("/api/cleanup-session", (req, res) => {
+  const sessionId = req.headers['x-session-id'] || 'default';
+  cleanupSession(sessionId);
+  res.json({ success: true });
+});
+
+app.delete("/api/delete-file", (req, res) => {
+  const { fileName } = req.body;
+  if (!fileName) {
+    return res.status(400).json({ error: "fileName is required" });
+  }
+  
+  const fullPath = path.join(uploadDir, fileName);
+  deleteFile(fullPath);
+  
+  const sessionId = fileToSession.get(fileName);
+  if (sessionId && temporaryFiles.has(sessionId)) {
+    temporaryFiles.get(sessionId).delete(fileName);
+    fileToSession.delete(fileName);
+  }
+  
+  res.json({ success: true });
 });
 
 app.get("/api/characters", (req, res) => {
@@ -110,11 +242,15 @@ app.post("/api/characters", (req, res) => {
   if (!newChar.name) return res.status(400).json({ error: "name required" });
   if (chars.find(c => c.name === newChar.name)) return res.status(409).json({ error: "Character already exists" });
 
-  // Generate unique ID for the character
   const characterWithId = {
     id: uuidv4(),
     ...newChar
   };
+
+  if (characterWithId.icon) {
+    const fileName = characterWithId.icon.replace('/uploads/', '');
+    confirmFile(fileName);
+  }
 
   chars.push(characterWithId);
   writeJson(CHARACTERS_PATH, chars);
@@ -136,6 +272,17 @@ app.put("/api/characters/:id", (req, res) => {
   if (hp > chars[idx].maxHp)
     req.body.hp = chars[idx].maxHp;
 
+  if (req.body.icon && req.body.icon !== chars[idx].icon) {
+    if (chars[idx].icon) {
+      const oldFileName = chars[idx].icon.replace('/uploads/', '');
+      const oldFilePath = path.join(uploadDir, oldFileName);
+      deleteFile(oldFilePath);
+    }
+    
+    const newFileName = req.body.icon.replace('/uploads/', '');
+    confirmFile(newFileName);
+  }
+
   chars[idx] = { ...chars[idx], ...req.body };
   writeJson(CHARACTERS_PATH, chars);
 
@@ -152,15 +299,7 @@ app.delete("/api/characters/:id", (req, res) => {
   if (characterToDelete && characterToDelete.icon) {
     const iconPath = characterToDelete.icon.replace('/uploads/', '');
     const fullIconPath = path.join(uploadDir, iconPath);
-    
-    try {
-      import('fs').then(fs => {
-        if (fs.existsSync(fullIconPath))
-          fs.unlinkSync(fullIconPath);
-      });
-    } catch (error) {
-      console.error('Error deleting icon file:', error);
-    }
+    deleteFile(fullIconPath);
   }
   
   const newChars = chars.filter(c => c.id !== id);
@@ -176,8 +315,14 @@ app.get("/overlay/:id", (req, res) => {
   const character = chars.find(c => c.id === id) || null;
 
   const fontSize = settings.characters.font_size || 14;
+  const fontFamily = settings.characters.font_family || "Poppins";
   const fontColor = settings.characters.font_color || "#FFFFFF";
-  const iconSize = settings.characters.icons_size || 64;
+  const healthIconSize = settings.characters.icons_size || 64;
+  const characterIconSize = settings.characters.character_icon_size || 170;
+  const showName = settings.characters.show_name !== false;
+  const showHealth = settings.characters.show_health !== false;
+  const showIcon = settings.characters.show_icon !== false;
+  const healthIconPath = settings.characters.health_icon_file_path;
 
   const initialHtml = `
   <!doctype html>
@@ -186,17 +331,51 @@ app.get("/overlay/:id", (req, res) => {
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <title>Overlay - ${character ? character.name : 'Unknown'}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
     <style>
       body { margin:0; background: transparent; }
-      .hp { font-size: ${fontSize}px; color: ${fontColor}; font-family: Arial, sans-serif; display:flex; align-items:center; gap:6px; }
-      .icon { width: ${iconSize}px; height: ${iconSize}px; object-fit: contain; }
+      .character-overlay { 
+        font-size: ${fontSize}px; 
+        color: ${fontColor}; 
+        font-family: "${fontFamily}", Arial, sans-serif; 
+        display: flex; 
+        flex-direction: column; 
+        align-items: flex-start; 
+        gap: 4px; 
+      }
+      .character-name { 
+        font-weight: bold; 
+        margin: 0; 
+        ${!showName ? 'display: none;' : ''}
+      }
+      .hp-container { 
+        display: flex; 
+        align-items: center; 
+        gap: 6px; 
+        ${!showHealth ? 'display: none;' : ''}
+      }
+      .character-icon { 
+        width: ${characterIconSize}px; 
+        height: ${characterIconSize}px; 
+        object-fit: contain;
+        ${!showIcon ? 'display: none;' : ''}
+      }
+      .health-icon { 
+        width: ${healthIconSize}px; 
+        height: ${healthIconSize}px; 
+        object-fit: contain;
+      }
     </style>
   </head>
   <body>
     <div id="root">
-      <div class="hp" id="hp">
-        ${character && character.icon ? `<img src="${character.icon}" class="icon" id="hpIcon" />` : ''}
-        <span id="hpText">${character ? `${character.hp ?? 0} / ${character.maxHp ?? 0}` : '—'}</span>
+      <div class="character-overlay" id="characterOverlay">
+        ${character && showName ? `<h3 class="character-name" id="characterName">${character.name || ''}</h3>` : ''}
+        <div class="hp-container" id="hpContainer">
+          ${character && character.icon && showIcon ? `<img src="${character.icon}" class="character-icon" id="characterIcon" />` : ''}
+          ${healthIconPath ? `<img src="${healthIconPath}" class="health-icon" id="healthIcon" />` : ''}
+          <span id="hpText">${character ? `${character.hp ?? 0} / ${character.maxHp ?? 0}` : '—'}</span>
+        </div>
       </div>
     </div>
 
@@ -206,20 +385,30 @@ app.get("/overlay/:id", (req, res) => {
 
       function updateCharacterDisplay(char){
         const text = document.getElementById("hpText");
-        const icon = document.getElementById("hpIcon");
+        const characterIcon = document.getElementById("characterIcon");
+        const name = document.getElementById("characterName");
+        
         if (!char) {
           text.innerText = '—';
+          if (name) name.innerText = '';
           return;
         }
+        
         text.innerText = (char.hp ?? 0) + " / " + (char.maxHp ?? 0);
+        
+        if (name) {
+          name.innerText = char.name || '';
+        }
+        
         if (char.icon) {
-          if (icon) icon.src = char.icon;
-          else {
+          if (characterIcon) {
+            characterIcon.src = char.icon;
+          } else if (${showIcon}) {
             const img = document.createElement('img');
-            img.id = 'hpIcon';
-            img.className = 'icon';
+            img.id = 'characterIcon';
+            img.className = 'character-icon';
             img.src = char.icon;
-            document.getElementById('root').prepend(img);
+            document.getElementById('hpContainer').prepend(img);
           }
         }
       }
@@ -245,8 +434,58 @@ app.get("/overlay/:id", (req, res) => {
 
       // optional: listen settings
       socket.on('settingsUpdated', (s) => {
-        document.querySelector('.hp').style.fontSize = (s.characters.font_size || ${fontSize}) + 'px';
-        document.querySelector('.hp').style.color = s.characters.font_color || '${fontColor}';
+        const overlayElement = document.querySelector('.character-overlay');
+        const nameElement = document.querySelector('.character-name');
+        const hpContainer = document.querySelector('.hp-container');
+        const characterIconElement = document.querySelector('.character-icon');
+        const healthIconElement = document.querySelector('.health-icon');
+        
+        // Update font settings
+        overlayElement.style.fontSize = (s.characters.font_size || ${fontSize}) + 'px';
+        overlayElement.style.color = s.characters.font_color || '${fontColor}';
+        overlayElement.style.fontFamily = '"' + (s.characters.font_family || '${fontFamily}') + '", Arial, sans-serif';
+        
+        // Update visibility settings
+        if (nameElement) {
+          nameElement.style.display = s.characters.show_name !== false ? 'block' : 'none';
+        }
+        if (hpContainer) {
+          hpContainer.style.display = s.characters.show_health !== false ? 'flex' : 'none';
+        }
+        if (characterIconElement) {
+          characterIconElement.style.display = s.characters.show_icon !== false ? 'block' : 'none';
+        }
+        
+        // Update health icon
+        if (healthIconElement) {
+          healthIconElement.style.width = (s.characters.icons_size || ${healthIconSize}) + 'px';
+          healthIconElement.style.height = (s.characters.icons_size || ${healthIconSize}) + 'px';
+          
+          if (s.characters.health_icon_file_path) {
+            healthIconElement.src = s.characters.health_icon_file_path;
+            healthIconElement.style.display = 'block';
+          } else {
+            healthIconElement.style.display = 'none';
+          }
+        } else if (s.characters.health_icon_file_path) {
+          // Create health icon if it doesn't exist
+          const img = document.createElement('img');
+          img.id = 'healthIcon';
+          img.className = 'health-icon';
+          img.src = s.characters.health_icon_file_path;
+          img.style.width = (s.characters.icons_size || ${healthIconSize}) + 'px';
+          img.style.height = (s.characters.icons_size || ${healthIconSize}) + 'px';
+          
+          const container = document.getElementById('hpContainer');
+          const hpText = document.getElementById('hpText');
+          container.insertBefore(img, hpText);
+        }
+        
+        // Update character icon size
+        if (characterIconElement) {
+          characterIconElement.style.width = (s.characters.character_icon_size || ${characterIconSize}) + 'px';
+          characterIconElement.style.height = (s.characters.character_icon_size || ${characterIconSize}) + 'px';
+        }
       });
     </script>
   </body>

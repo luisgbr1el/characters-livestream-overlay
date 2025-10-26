@@ -3,6 +3,7 @@ import { TbSettings } from "react-icons/tb";
 import { TbPlus } from "react-icons/tb";
 import CharacterCard from '../components/CharacterCard.jsx'
 import NewCharacterModal from '../components/NewCharacterModal.jsx'
+import SettingsModal from '../components/SettingsModal.jsx'
 import '../styles/App.css'
 import charactersList from "../../server/data/characters.json"
 
@@ -12,6 +13,7 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [characterToEdit, setCharacterToEdit] = useState(null);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
   const iconsSize = 20;
 
@@ -29,6 +31,20 @@ function App() {
     setCharacterToEdit(character);
     setIsEditing(true);
     setIsModalOpen(true);
+  };
+
+  const handleOpenSettingsModal = () => {
+    setIsSettingsModalOpen(true);
+  };
+
+  const handleCloseSettingsModal = () => {
+    setIsSettingsModalOpen(false);
+  };
+
+  const handleUpdateSettings = (newSettings) => {
+    // Aqui você pode adicionar lógica adicional se necessário
+    // Por exemplo, atualizar o estado global ou recarregar dados
+    console.log('Configurações atualizadas:', newSettings);
   };
 
   const handleCreateCharacter = async (newCharacter) => {
@@ -111,7 +127,7 @@ function App() {
   return (
     <div className="App">
       <div className='navbar'>
-        <button className='button'>
+        <button className='button' onClick={handleOpenSettingsModal}>
           <TbSettings size={iconsSize} />
           <p className='button-text'>Configurações</p>
         </button>
@@ -145,6 +161,11 @@ function App() {
         onUpdate={handleUpdateCharacter}
         isEditing={isEditing}
         characterToEdit={characterToEdit}
+      />
+      <SettingsModal
+        isOpen={isSettingsModalOpen}
+        onClose={handleCloseSettingsModal}
+        onUpdate={handleUpdateSettings}
       />
     </div>
   )

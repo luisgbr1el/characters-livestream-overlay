@@ -1,12 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import '../styles/Modal.css';
 import { MdOutlineImage } from "react-icons/md";
+import FileSessionManager from '../utils/fileSessionManager.js';
 
 function NewCharacterModal({ isOpen, onClose, onCreate, onUpdate, isEditing = false, characterToEdit = null }) {
     const [name, setName] = useState("");
     const [iconUrl, setIconUrl] = useState("");
     const [healthPoints, setHealthPoints] = useState();
     const [maxHealthPoints, setMaxHealthPoints] = useState();
+    const [currentFileName, setCurrentFileName] = useState("");
+    
+    const fileSessionRef = useRef(new FileSessionManager());
 
     useEffect(() => {
         if (isEditing && characterToEdit) {
@@ -14,12 +18,13 @@ function NewCharacterModal({ isOpen, onClose, onCreate, onUpdate, isEditing = fa
             setIconUrl(characterToEdit.icon);
             setHealthPoints(characterToEdit.hp);
             setMaxHealthPoints(characterToEdit.maxHp);
+            setCurrentFileName("");
         }
     }, [isEditing, characterToEdit]);
 
     if (!isOpen) return null;
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         
         if (!name || !iconUrl || healthPoints == null || maxHealthPoints == null) {
@@ -29,6 +34,10 @@ function NewCharacterModal({ isOpen, onClose, onCreate, onUpdate, isEditing = fa
         
         const characterData = { name, icon: iconUrl, hp: healthPoints, maxHp: maxHealthPoints };
         
+
+        if (currentFileName)
+            await fileSessionRef.current.confirmFile(currentFileName);
+        
         if (isEditing)
             onUpdate({ ...characterData, id: characterToEdit.id });
         else
@@ -37,11 +46,18 @@ function NewCharacterModal({ isOpen, onClose, onCreate, onUpdate, isEditing = fa
         handleClose();
     };
 
-    const handleClose = () => {
+    const handleClose = async () => {
+        if (currentFileName)
+            await fileSessionRef.current.cleanupSession();
+        
         setName("");
         setIconUrl("");
         setHealthPoints();
         setMaxHealthPoints();
+        setCurrentFileName("");
+        
+        fileSessionRef.current.resetSession();
+        
         onClose();
     };
 
@@ -49,21 +65,16 @@ function NewCharacterModal({ isOpen, onClose, onCreate, onUpdate, isEditing = fa
         const file = e.target.files[0];
         if (file) {
             try {
-                const formData = new FormData();
-                formData.append('file', file);
-
-                const response = await fetch('http://localhost:3000/api/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    setIconUrl(data.url);
-                } else
-                    console.error('Erro no upload:', response.statusText);
+                if (currentFileName) {
+                    await fileSessionRef.current.deleteFile(currentFileName);
+                }
+                
+                const data = await fileSessionRef.current.uploadFile(file);
+                setIconUrl(data.url);
+                setCurrentFileName(data.fileName);
             } catch (error) {
                 console.error('Erro no upload:', error);
+                alert('Erro no upload do arquivo. Tente novamente.');
             }
         }
     };
@@ -92,7 +103,7 @@ function NewCharacterModal({ isOpen, onClose, onCreate, onUpdate, isEditing = fa
                     <div className="modal-column">
                         <label>
                             Ícone
-                            <div id="icon-preview-container">
+                            <div id="icon-preview-container" className={iconUrl ? 'has-image' : ''}>
                             <input type="file" accept="image/*" onChange={handlePhotoUpload} />
                                 <MdOutlineImage size={60} />
                                 {iconUrl && <img src={iconUrl} alt="Ícone do personagem" />}

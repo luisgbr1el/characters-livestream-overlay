@@ -22,15 +22,6 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  color: var(--text-color);
-  text-decoration: inherit;
-}
-a:hover {
-  color: var(--primary-color);
-}
-
 body {
   margin: 0;
   padding: 0;
@@ -132,4 +123,5 @@ svg {
 .title {
   padding: 0;
   margin: 0;
+  text-align: left;
 }
