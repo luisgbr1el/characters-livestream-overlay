@@ -107,8 +107,8 @@
 }
 
 .navbar-button:hover {
-    background-color: rgba(164, 163, 164, 0.2) !important;
-    border-color: var(--border-color) !important;
+    background-color: var(--secondary-color);
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .navbar-button.active {

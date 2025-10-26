@@ -2,8 +2,9 @@
   "general": {
     "language": "pt-BR"
   },
-  "characters": {
+  "overlay": {
     "show_icon": true,
+    "show_character_icon": true,
     "show_health": true,
     "show_name": true,
     "font_size": 20,

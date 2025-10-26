@@ -109,8 +109,9 @@ setInterval(cleanupOldFiles, 60 * 60 * 1000);
 
 const defaultSettings = {
   general: { language: "pt-BR" },
-  characters: {
+  overlay: {
     show_icon: true,
+    show_character_icon: true,
     show_health: true,
     show_name: true,
     font_size: 14,
@@ -144,9 +145,9 @@ app.put("/api/settings", (req, res) => {
       }
     }
     
-    if (settingsBody.characters && settingsBody.characters.health_icon_file_path) {
-      const newIconPath = settingsBody.characters.health_icon_file_path;
-      const currentIconPath = currentSettings.characters.health_icon_file_path;
+    if (settingsBody.overlay && settingsBody.overlay.health_icon_file_path) {
+      const newIconPath = settingsBody.overlay.health_icon_file_path;
+      const currentIconPath = currentSettings.overlay.health_icon_file_path;
       
       if (currentIconPath && currentIconPath !== newIconPath) {
         const oldFileName = currentIconPath.replace('/uploads/', '');
@@ -314,15 +315,16 @@ app.get("/overlay/:id", (req, res) => {
   const chars = readJson(CHARACTERS_PATH, defaultCharacters);
   const character = chars.find(c => c.id === id) || null;
 
-  const fontSize = settings.characters.font_size || 14;
-  const fontFamily = settings.characters.font_family || "Poppins";
-  const fontColor = settings.characters.font_color || "#FFFFFF";
-  const healthIconSize = settings.characters.icons_size || 64;
-  const characterIconSize = settings.characters.character_icon_size || 170;
-  const showName = settings.characters.show_name !== false;
-  const showHealth = settings.characters.show_health !== false;
-  const showIcon = settings.characters.show_icon !== false;
-  const healthIconPath = settings.characters.health_icon_file_path;
+  const fontSize = settings.overlay.font_size || 14;
+  const fontFamily = settings.overlay.font_family || "Poppins";
+  const fontColor = settings.overlay.font_color || "#FFFFFF";
+  const healthIconSize = settings.overlay.icons_size || 64;
+  const characterIconSize = settings.overlay.character_icon_size || 170;
+  const showName = settings.overlay.show_name !== false;
+  const showHealth = settings.overlay.show_health !== false;
+  const showIcon = settings.overlay.show_icon !== false;
+  const showCharacterIcon = settings.overlay.show_character_icon !== false;
+  const healthIconPath = settings.overlay.health_icon_file_path;
 
   const initialHtml = `
   <!doctype html>
@@ -358,12 +360,13 @@ app.get("/overlay/:id", (req, res) => {
         width: ${characterIconSize}px; 
         height: ${characterIconSize}px; 
         object-fit: contain;
-        ${!showIcon ? 'display: none;' : ''}
+        ${!showCharacterIcon ? 'display: none;' : ''}
       }
       .health-icon { 
         width: ${healthIconSize}px; 
         height: ${healthIconSize}px; 
         object-fit: contain;
+        ${!showIcon ? 'display: none;' : ''}
       }
     </style>
   </head>
@@ -372,8 +375,8 @@ app.get("/overlay/:id", (req, res) => {
       <div class="character-overlay" id="characterOverlay">
         ${character && showName ? `<h3 class="character-name" id="characterName">${character.name || ''}</h3>` : ''}
         <div class="hp-container" id="hpContainer">
-          ${character && character.icon && showIcon ? `<img src="${character.icon}" class="character-icon" id="characterIcon" />` : ''}
-          ${healthIconPath ? `<img src="${healthIconPath}" class="health-icon" id="healthIcon" />` : ''}
+          ${character && character.icon && showCharacterIcon ? `<img src="${character.icon}" class="character-icon" id="characterIcon" />` : ''}
+          ${healthIconPath && showIcon ? `<img src="${healthIconPath}" class="health-icon" id="healthIcon" />` : ''}
           <span id="hpText">${character ? `${character.hp ?? 0} / ${character.maxHp ?? 0}` : '—'}</span>
         </div>
       </div>
@@ -403,7 +406,7 @@ app.get("/overlay/:id", (req, res) => {
         if (char.icon) {
           if (characterIcon) {
             characterIcon.src = char.icon;
-          } else if (${showIcon}) {
+          } else if (${showCharacterIcon}) {
             const img = document.createElement('img');
             img.id = 'characterIcon';
             img.className = 'character-icon';
@@ -441,40 +444,38 @@ app.get("/overlay/:id", (req, res) => {
         const healthIconElement = document.querySelector('.health-icon');
         
         // Update font settings
-        overlayElement.style.fontSize = (s.characters.font_size || ${fontSize}) + 'px';
-        overlayElement.style.color = s.characters.font_color || '${fontColor}';
-        overlayElement.style.fontFamily = '"' + (s.characters.font_family || '${fontFamily}') + '", Arial, sans-serif';
+        overlayElement.style.fontSize = (s.overlay.font_size || ${fontSize}) + 'px';
+        overlayElement.style.color = s.overlay.font_color || '${fontColor}';
+        overlayElement.style.fontFamily = '"' + (s.overlay.font_family || '${fontFamily}') + '", Arial, sans-serif';
         
         // Update visibility settings
         if (nameElement) {
-          nameElement.style.display = s.characters.show_name !== false ? 'block' : 'none';
+          nameElement.style.display = s.overlay.show_name !== false ? 'block' : 'none';
         }
         if (hpContainer) {
-          hpContainer.style.display = s.characters.show_health !== false ? 'flex' : 'none';
+          hpContainer.style.display = s.overlay.show_health !== false ? 'flex' : 'none';
         }
         if (characterIconElement) {
-          characterIconElement.style.display = s.characters.show_icon !== false ? 'block' : 'none';
+          characterIconElement.style.display = s.overlay.show_character_icon !== false ? 'block' : 'none';
         }
         
         // Update health icon
         if (healthIconElement) {
-          healthIconElement.style.width = (s.characters.icons_size || ${healthIconSize}) + 'px';
-          healthIconElement.style.height = (s.characters.icons_size || ${healthIconSize}) + 'px';
+          healthIconElement.style.display = s.overlay.show_icon !== false ? 'block' : 'none';
+          healthIconElement.style.width = (s.overlay.icons_size || ${healthIconSize}) + 'px';
+          healthIconElement.style.height = (s.overlay.icons_size || ${healthIconSize}) + 'px';
           
-          if (s.characters.health_icon_file_path) {
-            healthIconElement.src = s.characters.health_icon_file_path;
-            healthIconElement.style.display = 'block';
-          } else {
-            healthIconElement.style.display = 'none';
+          if (s.overlay.health_icon_file_path) {
+            healthIconElement.src = s.overlay.health_icon_file_path;
           }
-        } else if (s.characters.health_icon_file_path) {
+        } else if (s.overlay.health_icon_file_path && s.overlay.show_icon !== false) {
           // Create health icon if it doesn't exist
           const img = document.createElement('img');
           img.id = 'healthIcon';
           img.className = 'health-icon';
-          img.src = s.characters.health_icon_file_path;
-          img.style.width = (s.characters.icons_size || ${healthIconSize}) + 'px';
-          img.style.height = (s.characters.icons_size || ${healthIconSize}) + 'px';
+          img.src = s.overlay.health_icon_file_path;
+          img.style.width = (s.overlay.icons_size || ${healthIconSize}) + 'px';
+          img.style.height = (s.overlay.icons_size || ${healthIconSize}) + 'px';
           
           const container = document.getElementById('hpContainer');
           const hpText = document.getElementById('hpText');
@@ -483,8 +484,8 @@ app.get("/overlay/:id", (req, res) => {
         
         // Update character icon size
         if (characterIconElement) {
-          characterIconElement.style.width = (s.characters.character_icon_size || ${characterIconSize}) + 'px';
-          characterIconElement.style.height = (s.characters.character_icon_size || ${characterIconSize}) + 'px';
+          characterIconElement.style.width = (s.overlay.character_icon_size || ${characterIconSize}) + 'px';
+          characterIconElement.style.height = (s.overlay.character_icon_size || ${characterIconSize}) + 'px';
         }
       });
     </script>

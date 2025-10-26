@@ -7,6 +7,7 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
     const [activeTab, setActiveTab] = useState("general");
     const [language, setLanguage] = useState("pt-BR");
     const [showIcon, setShowIcon] = useState(true);
+    const [showCharacterIcon, setShowCharacterIcon] = useState(true);
     const [showHealth, setShowHealth] = useState(true);
     const [showName, setShowName] = useState(true);
     const [fontSize, setFontSize] = useState(14);
@@ -32,15 +33,16 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
             if (response.ok) {
                 const settings = await response.json();
                 setLanguage(settings.general.language);
-                setShowIcon(settings.characters.show_icon);
-                setShowHealth(settings.characters.show_health);
-                setShowName(settings.characters.show_name);
-                setFontSize(settings.characters.font_size);
-                setFontFamily(settings.characters.font_family);
-                setFontColor(settings.characters.font_color);
-                setIconsSize(settings.characters.icons_size);
-                setCharacterIconSize(settings.characters.character_icon_size || 170);
-                setHealthIconFilePath(settings.characters.health_icon_file_path);
+                setShowIcon(settings.overlay.show_icon);
+                setShowCharacterIcon(settings.overlay.show_character_icon);
+                setShowHealth(settings.overlay.show_health);
+                setShowName(settings.overlay.show_name);
+                setFontSize(settings.overlay.font_size);
+                setFontFamily(settings.overlay.font_family);
+                setFontColor(settings.overlay.font_color);
+                setIconsSize(settings.overlay.icons_size);
+                setCharacterIconSize(settings.overlay.character_icon_size || 170);
+                setHealthIconFilePath(settings.overlay.health_icon_file_path);
                 setCurrentHealthIconFileName("");
             } else
                 console.error('Erro ao buscar configurações:', response.statusText);
@@ -62,8 +64,9 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
             general: {
                 language
             },
-            characters: {
+            overlay: {
                 show_icon: showIcon,
+                show_character_icon: showCharacterIcon,
                 show_health: showHealth,
                 show_name: showName,
                 font_size: fontSize,
@@ -134,8 +137,11 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
                             <li className={`navbar-button ${activeTab === "general" ? "active" : ""}`} onClick={() => setActiveTab("general")}>
                                 Geral
                             </li>
-                            <li className={`navbar-button ${activeTab === "characters" ? "active" : ""}`} onClick={() => setActiveTab("characters")}>
+                            <li className={`navbar-button ${activeTab === "overlay" ? "active" : ""}`} onClick={() => setActiveTab("overlay")}>
                                 Overlay
+                            </li>
+                            <li className={`navbar-button ${activeTab === "about" ? "active" : ""}`} onClick={() => setActiveTab("about")}>
+                                Sobre
                             </li>
                         </ul>
                     </div>
@@ -154,7 +160,7 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
                                 </div>
                             )}
 
-                            {activeTab === "characters" && (
+                            {activeTab === "overlay" && (
                                 <div className="modal-column modal-full-width">
                                     <h4 className='title'>Componentes</h4>
                                     <div className="modal-row">
@@ -179,11 +185,21 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
                                     </div>
                                     <div className="modal-row">
                                         <label className='inline-label'>
-                                            <p className='button-text'>Mostrar ícone</p>
+                                            <p className='button-text'>Mostrar ícone de HP</p>
                                             <input
                                                 type="checkbox"
                                                 checked={showIcon}
                                                 onChange={(e) => setShowIcon(e.target.checked)}
+                                            />
+                                        </label>
+                                    </div>
+                                    <div className="modal-row">
+                                        <label className='inline-label'>
+                                            <p className='button-text'>Mostrar ícone do personagem</p>
+                                            <input
+                                                type="checkbox"
+                                                checked={showCharacterIcon}
+                                                onChange={(e) => setShowCharacterIcon(e.target.checked)}
                                             />
                                         </label>
                                     </div>
@@ -207,7 +223,7 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
                                     </label>
                                     <div className="modal-row">
                                         <label>
-                                            <p className='button-text'>Tamanho da fonte (pt)</p>
+                                            <p className='button-text'>Tamanho do texto (pt)</p>
                                             <input
                                                 type="number"
                                                 value={fontSize}
@@ -218,7 +234,7 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
                                             />
                                         </label>
                                         <label>
-                                            <p className='button-text'>Cor da fonte</p>
+                                            <p className='button-text'>Cor do texto</p>
                                             <input
                                                 type="color"
                                                 value={fontColor}
@@ -263,6 +279,13 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
                                             </div>
                                         </label>
                                     </div>
+                                </div>
+                            )}
+
+                            {activeTab === "about" && (
+                                <div className="modal-column modal-full-width">
+                                    <h4 className='title'>v0.0.1</h4>
+                                    <a href="https://github.com/webbcenter/" target="_blank" rel="noopener noreferrer">GitHub</a>
                                 </div>
                             )}
                         </form>
