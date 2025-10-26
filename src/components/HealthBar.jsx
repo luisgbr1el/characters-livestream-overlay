@@ -18,7 +18,7 @@ function HealthBar({ currentHealth, maxHealth }) {
         <div className="health-bar">
             <div
                 className="health-bar-fill"
-                style={{ 
+                style={{
                     width: `${healthPercentage}%`,
                     backgroundColor: getHealthColor(healthPercentage)
                 }}

@@ -4,6 +4,7 @@ import { Server } from "socket.io";
 import cors from "cors";
 import multer from "multer";
 import path from "path";
+import { v4 as uuidv4 } from "uuid";
 import { readJson, writeJson } from "./utils/storage.js";
 
 const app = express();
@@ -87,11 +88,11 @@ app.post("/api/upload", (req, res) => {
       }
       return res.status(400).json({ error: err.message });
     }
-    
+
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded" });
     }
-    
+
     const url = `/uploads/${req.file.filename}`;
     res.json({ url });
   });
@@ -105,40 +106,74 @@ app.get("/api/characters", (req, res) => {
 app.post("/api/characters", (req, res) => {
   const chars = readJson(CHARACTERS_PATH, defaultCharacters);
   const newChar = req.body;
+
   if (!newChar.name) return res.status(400).json({ error: "name required" });
   if (chars.find(c => c.name === newChar.name)) return res.status(409).json({ error: "Character already exists" });
-  chars.push(newChar);
+
+  // Generate unique ID for the character
+  const characterWithId = {
+    id: uuidv4(),
+    ...newChar
+  };
+
+  chars.push(characterWithId);
   writeJson(CHARACTERS_PATH, chars);
   io.emit("charactersUpdated", chars);
   res.status(201).json(chars);
 });
 
-app.put("/api/characters/:name", (req, res) => {
-  const name = req.params.name;
+app.put("/api/characters/:id", (req, res) => {
+  const id = req.params.id;
+  const hp = req.body.hp;
+  if (hp !== undefined && (isNaN(hp) || hp < 0))
+    return res.status(400).json({ error: "HP must be a non-negative number" });
+
   const chars = readJson(CHARACTERS_PATH, defaultCharacters);
-  const idx = chars.findIndex(c => c.name === name);
-  if (idx === -1) return res.status(404).json({ error: "not found" });
+  const idx = chars.findIndex(c => c.id === id);
+
+  if (idx === -1) return res.status(404).json({ error: "Character not found" });
+
+  if (hp > chars[idx].maxHp)
+    req.body.hp = chars[idx].maxHp;
+
   chars[idx] = { ...chars[idx], ...req.body };
   writeJson(CHARACTERS_PATH, chars);
+
   io.emit("charactersUpdated", chars);
-  io.emit("characterUpdated", { name, character: chars[idx] });
+  io.emit("characterUpdated", { id, character: chars[idx] });
   res.json(chars[idx]);
 });
 
-app.delete("/api/characters/:name", (req, res) => {
-  const name = req.params.name;
+app.delete("/api/characters/:id", (req, res) => {
+  const id = req.params.id;
   let chars = readJson(CHARACTERS_PATH, defaultCharacters);
-  const newChars = chars.filter(c => c.name !== name);
+  const characterToDelete = chars.find(c => c.id === id);
+  
+  if (characterToDelete && characterToDelete.icon) {
+    const iconPath = characterToDelete.icon.replace('/uploads/', '');
+    const fullIconPath = path.join(uploadDir, iconPath);
+    
+    try {
+      import('fs').then(fs => {
+        if (fs.existsSync(fullIconPath))
+          fs.unlinkSync(fullIconPath);
+      });
+    } catch (error) {
+      console.error('Error deleting icon file:', error);
+    }
+  }
+  
+  const newChars = chars.filter(c => c.id !== id);
   writeJson(CHARACTERS_PATH, newChars);
   io.emit("charactersUpdated", newChars);
   res.json({ ok: true });
 });
 
-app.get("/overlay/:name", (req, res) => {
-  const name = req.params.name;
+app.get("/overlay/:id", (req, res) => {
+  const id = req.params.id;
   const settings = readJson(SETTINGS_PATH, defaultSettings);
   const chars = readJson(CHARACTERS_PATH, defaultCharacters);
-  const character = chars.find(c => c.name === name) || null;
+  const character = chars.find(c => c.id === id) || null;
 
   const fontSize = settings.characters.font_size || 14;
   const fontColor = settings.characters.font_color || "#FFFFFF";
@@ -150,7 +185,7 @@ app.get("/overlay/:name", (req, res) => {
   <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <title>Overlay - ${name}</title>
+    <title>Overlay - ${character ? character.name : 'Unknown'}</title>
     <style>
       body { margin:0; background: transparent; }
       .hp { font-size: ${fontSize}px; color: ${fontColor}; font-family: Arial, sans-serif; display:flex; align-items:center; gap:6px; }
@@ -191,20 +226,20 @@ app.get("/overlay/:name", (req, res) => {
 
       // when server emits a specific character update
       socket.on('characterUpdated', (payload) => {
-        if (payload && payload.name === "${name}") {
+        if (payload && payload.id === "${id}") {
           updateCharacterDisplay(payload.character);
         }
       });
 
       // fallback: full list update
       socket.on('charactersUpdated', (chars) => {
-        const char = (chars || []).find(c => c.name === "${name}");
+        const char = (chars || []).find(c => c.id === "${id}");
         if (char) updateCharacterDisplay(char);
       });
 
       // initial load: ask server for characters
       fetch('/api/characters').then(r => r.json()).then(chars=>{
-        const char = (chars || []).find(c => c.name === "${name}");
+        const char = (chars || []).find(c => c.id === "${id}");
         if (char) updateCharacterDisplay(char);
       });
 
@@ -231,13 +266,16 @@ io.on("connection", (socket) => {
   });
 
   socket.on("updateCharacter", (payload) => {
-    if (!payload || !payload.name) return;
+    if (!payload || !payload.id) return;
+
     const chars = readJson(CHARACTERS_PATH, defaultCharacters);
-    const idx = chars.findIndex(c => c.name === payload.name);
+    const idx = chars.findIndex(c => c.id === payload.id);
+
     if (idx === -1) return;
+
     chars[idx] = { ...chars[idx], ...payload.data };
     writeJson(CHARACTERS_PATH, chars);
-    io.emit("characterUpdated", { name: payload.name, character: chars[idx] });
+    io.emit("characterUpdated", { id: payload.id, character: chars[idx] });
     io.emit("charactersUpdated", chars);
   });
 });

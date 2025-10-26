@@ -44,7 +44,7 @@ h1 {
   line-height: 1.1;
 }
 
-button {
+.button {
   color: var(--text-color);
   border-radius: 8px;
   padding: 5px 10px;
@@ -58,7 +58,7 @@ button {
   cursor: pointer;
   transition: 0.25s;
 }
-button:hover {
+.button:hover {
   background-color: rgba(255, 255, 255, 0.1);
   border: 1px solid var(--border-color);
 }
@@ -79,7 +79,7 @@ svg {
   justify-content: flex-end;
   padding: 10px;
   display: flex;
-  border-bottom: 1px solid var(--secondary-color);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   box-sizing: border-box;
 }
 
