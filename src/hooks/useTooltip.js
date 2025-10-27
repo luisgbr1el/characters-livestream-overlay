@@ -15,7 +15,6 @@ export function useTooltip(elementId, isEnabled = true) {
             const rect = targetElement.getBoundingClientRect();
             const tooltipRect = tooltip.getBoundingClientRect();
             
-            // Posicionar o tooltip baseado na posição especificada
             const position = tooltip.classList.contains('tooltip-top') ? 'top' :
                            tooltip.classList.contains('tooltip-bottom') ? 'bottom' :
                            tooltip.classList.contains('tooltip-left') ? 'left' : 'right';

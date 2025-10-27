@@ -6,7 +6,7 @@ import { TbHeartPlus } from "react-icons/tb";
 import { TbHeartMinus } from "react-icons/tb";
 import { TbLink } from "react-icons/tb";
 
-function CharacterCard({ id, name, icon, hp, maxHp, onEdit }) {
+function CharacterCard({ id, name, icon, hp, maxHp, onEdit, onHeal, onDamage }) {
     const handleCopyUrl = () => {
         const url = "http://localhost:3000/overlay/" + id;
         navigator.clipboard.writeText(url).then(() => {
@@ -27,12 +27,12 @@ function CharacterCard({ id, name, icon, hp, maxHp, onEdit }) {
                     </div>
                 </div>
                 <div className="character-actions">
-                    <button id={`heal-button-${name}`} className="action-button">
+                    <button id={`heal-button-${name}`} className="action-button" onClick={onHeal}>
                         <TbHeartPlus size={15} />
                     </button>
                     <Tooltip elementId={`heal-button-${name}`} text="Cura" position="left" />
 
-                    <button id={`damage-button-${name}`} className="action-button">
+                    <button id={`damage-button-${name}`} className="action-button" onClick={onDamage}>
                         <TbHeartMinus size={15} />
                     </button>
                     <Tooltip elementId={`damage-button-${name}`} text="Dano" position="left" />

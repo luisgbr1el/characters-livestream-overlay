@@ -4,16 +4,18 @@ import { TbPlus } from "react-icons/tb";
 import CharacterCard from '../components/CharacterCard.jsx'
 import NewCharacterModal from '../components/NewCharacterModal.jsx'
 import SettingsModal from '../components/SettingsModal.jsx'
+import HealthManagementModal from '../components/HealthManagementModal.jsx';
 import '../styles/App.css'
 import charactersList from "../../server/data/characters.json"
 
 function App() {
-  // const [count, setCount] = useState(0)
   let [characters, setCharacters] = useState(charactersList);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [characterToEdit, setCharacterToEdit] = useState(null);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isHealthModalOpen, setIsHealthModalOpen] = useState(false);
+  const [isHealing, setIsHealing] = useState(false);
 
   const iconsSize = 20;
 
@@ -41,9 +43,17 @@ function App() {
     setIsSettingsModalOpen(false);
   };
 
+  const handleOpenHealthModal = (healing = false, character = null) => {
+    setIsHealing(healing);
+    setIsHealthModalOpen(true);
+    setCharacterToEdit(character);
+  };
+
+  const handleCloseHealthModal = () => {
+    setIsHealthModalOpen(false);
+  }
+
   const handleUpdateSettings = (newSettings) => {
-    // Aqui você pode adicionar lógica adicional se necessário
-    // Por exemplo, atualizar o estado global ou recarregar dados
     console.log('Configurações atualizadas:', newSettings);
   };
 
@@ -150,6 +160,8 @@ function App() {
               hp={character.hp}
               maxHp={character.maxHp}
               onEdit={() => handleEditCharacter(character)}
+              onHeal={() => handleOpenHealthModal(true, character)}
+              onDamage={() => handleOpenHealthModal(false, character)}
             />
           ))}
         </div>
@@ -166,6 +178,13 @@ function App() {
         isOpen={isSettingsModalOpen}
         onClose={handleCloseSettingsModal}
         onUpdate={handleUpdateSettings}
+      />
+      <HealthManagementModal
+        isOpen={isHealthModalOpen}
+        onClose={handleCloseHealthModal}
+        onUpdate={handleUpdateCharacter}
+        character={characterToEdit}
+        isHealing={isHealing}
       />
     </div>
   )
