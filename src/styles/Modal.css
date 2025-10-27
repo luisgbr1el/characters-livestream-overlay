@@ -181,6 +181,17 @@
     width: 100%;
 }
 
+.modal-content input:hover,
+.modal-content select:hover {
+    border-color: var(--border-color);
+}
+
+.modal-content input:focus,
+.modal-content select:focus {
+    border-color: var(--border-color);
+    box-shadow: 0 0 5px rgb(108, 108, 108);
+}
+
 input[type="color"] {
     padding: 0;
     height: 32px;
@@ -272,7 +283,6 @@ input[type="color"]::-webkit-color-swatch {
     background-color: var(--secondary-color);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
-    cursor: pointer;
     position: relative;
     overflow: hidden;
     transition: border-color 0.25s;

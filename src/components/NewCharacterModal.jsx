@@ -2,8 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import '../styles/Modal.css';
 import { MdOutlineImage } from "react-icons/md";
 import FileSessionManager from '../utils/fileSessionManager.js';
+import { useI18n } from '../i18n/i18nContext';
 
 function NewCharacterModal({ isOpen, onClose, onCreate, onUpdate, isEditing = false, characterToEdit = null }) {
+    const { t } = useI18n();
     const [name, setName] = useState("");
     const [iconUrl, setIconUrl] = useState("");
     const [healthPoints, setHealthPoints] = useState();
@@ -28,12 +30,11 @@ function NewCharacterModal({ isOpen, onClose, onCreate, onUpdate, isEditing = fa
         e.preventDefault();
         
         if (!name || !iconUrl || healthPoints == null || maxHealthPoints == null) {
-            alert("Por favor, preencha todos os campos.");
+            alert(t('validation.fill_all_fields'));
             return;
         }
         
         const characterData = { name, icon: iconUrl, hp: healthPoints, maxHp: maxHealthPoints };
-        
 
         if (currentFileName)
             await fileSessionRef.current.confirmFile(currentFileName);
@@ -73,8 +74,8 @@ function NewCharacterModal({ isOpen, onClose, onCreate, onUpdate, isEditing = fa
                 setIconUrl(data.url);
                 setCurrentFileName(data.fileName);
             } catch (error) {
-                console.error('Erro no upload:', error);
-                alert('Erro no upload do arquivo. Tente novamente.');
+                console.error('Upload error:', error);
+                alert(t('validation.upload_error'));
             }
         }
     };
@@ -82,27 +83,27 @@ function NewCharacterModal({ isOpen, onClose, onCreate, onUpdate, isEditing = fa
     return (
         <div className="modal-overlay">
             <div className="modal-content">
-                <h2 className="title">{isEditing ? "Editar personagem" : "Novo personagem"}</h2>
+                <h2 className="title">{isEditing ? t('characters.edit_character') : t('characters.new_character')}</h2>
                 <form onSubmit={handleSubmit}>
                     <div className="modal-column">
                         <label>
-                            Nome
+                            {t('characters.name')}
                             <input type="text" value={name} onChange={(e) => setName(e.target.value)} required />
                         </label>
                         <div className="modal-row">
                             <label>
-                                HP atual
+                                {t('characters.current_hp')}
                                 <input type="number" value={healthPoints} onChange={(e) => setHealthPoints(parseInt(e.target.value) || 0)} min="0" required />
                             </label>
                             <label>
-                                HP máximo
+                                {t('characters.max_hp')}
                                 <input type="number" value={maxHealthPoints} onChange={(e) => setMaxHealthPoints(parseInt(e.target.value) || 0)} min="0" required />
                             </label>
                         </div>
                     </div>
                     <div className="modal-column">
                         <label>
-                            Ícone
+                            {t('characters.icon')}
                             <div id="icon-preview-container" className={iconUrl ? 'has-image' : ''}>
                             <input type="file" accept="image/*" onChange={handlePhotoUpload} />
                                 <MdOutlineImage size={60} />
@@ -114,18 +115,20 @@ function NewCharacterModal({ isOpen, onClose, onCreate, onUpdate, isEditing = fa
                 <div className="modal-actions" style={{ position: 'relative' }}>
                     {isEditing && (
                         <button className="button delete-button" style={{ position: 'absolute', left: '0', top: '10px' }} type="button" onClick={() => {
-                            if (window.confirm("Tem certeza que deseja deletar este personagem?")) {
+                            if (window.confirm(t('characters.delete_confirm'))) {
                                 onUpdate({ id: characterToEdit.id, delete: true });
                                 handleClose();
                             }
                         }}>
-                            Excluir
+                            {t('common.delete')}
                         </button>
                     )}
                     <button className="button" type="submit" onClick={handleSubmit}>
-                        {isEditing ? "Salvar" : "Criar"}
+                        {isEditing ? t('common.save') : t('common.create')}
                     </button>
-                    <button className="button" type="button" onClick={handleClose}>Cancelar</button>
+                    <button className="button" type="button" onClick={handleClose}>
+                        {t('common.cancel')}
+                    </button>
                 </div>
             </div>
         </div>

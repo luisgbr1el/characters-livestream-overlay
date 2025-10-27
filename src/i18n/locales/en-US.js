@@ -1,0 +1,57 @@
+export default {
+    common: {
+        save: "Save",
+        cancel: "Cancel",
+        edit: "Edit",
+        delete: "Delete",
+        new: "New",
+        create: "Create",
+        heal: "Heal",
+        damage: "Damage",
+        copy_url: "Copy URL",
+        settings: "Settings"
+    },
+    characters: {
+        title: "Characters",
+        name: "Name",
+        current_hp: "Current HP",
+        max_hp: "Max HP",
+        icon: "Icon",
+        heal_character: "Heal {name}",
+        damage_character: "Damage {name}",
+        edit_character: "Edit character",
+        new_character: "New character",
+        delete_confirm: "Are you sure you want to delete this character?",
+        heal_amount: "Heal amount",
+        damage_amount: "Damage amount",
+        url_copied: "URL copied to clipboard!"
+    },
+    settings: {
+        title: "Settings",
+        general: "General",
+        overlay: "Overlay",
+        about: "About",
+        language: "Language",
+        application: "Application",
+        components: "Components",
+        text: "Text",
+        icons: "Icons",
+        show_name: "Show name",
+        show_hp: "Show HP",
+        show_hp_icon: "Show HP icon",
+        show_character_icon: "Show character icon",
+        font: "Font",
+        font_size: "Font size (pt)",
+        font_color: "Font color",
+        hp_icon_size: "HP icon size (px)",
+        character_icon_size: "Character icon size (px)",
+        hp_icon: "HP icon"
+    },
+    validation: {
+        fill_all_fields: "Please fill in all fields.",
+        valid_amount: "Please enter a valid amount.",
+        character_exists: "Character already exists.",
+        upload_error: "File upload error. Please try again.",
+        save_error: "Error saving settings. Please try again."
+    }
+};

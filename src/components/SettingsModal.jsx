@@ -2,8 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import '../styles/Modal.css';
 import { MdOutlineImage } from "react-icons/md";
 import FileSessionManager from '../utils/fileSessionManager.js';
+import { useI18n } from '../i18n/i18nContext';
 
 function SettingsModal({ isOpen, onClose, onUpdate }) {
+    const { t } = useI18n();
     const [activeTab, setActiveTab] = useState("general");
     const [language, setLanguage] = useState("pt-BR");
     const [showIcon, setShowIcon] = useState(true);
@@ -45,9 +47,9 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
                 setHealthIconFilePath(settings.overlay.health_icon_file_path);
                 setCurrentHealthIconFileName("");
             } else
-                console.error('Erro ao buscar configurações:', response.statusText);
+                console.error('Error loading settings:', response.statusText);
         } catch (error) {
-            console.error('Erro de rede ao buscar configurações:', error);
+            console.error('Network error fetching settings:', error);
         }
     };
 
@@ -91,12 +93,12 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
                 onUpdate(settingsData);
                 handleClose();
             } else {
-                console.error('Erro ao salvar configurações:', response.statusText);
-                alert('Erro ao salvar configurações. Tente novamente.');
+                console.error('Error saving settings:', response.statusText);
+                alert(t('validation.save_error'));
             }
         } catch (error) {
-            console.error('Erro de rede ao salvar configurações:', error);
-            alert('Erro de conexão. Verifique se o servidor está rodando.');
+            console.error('Network error saving settings:', error);
+            alert(t('validation.save_error'));
         }
     };
 
@@ -121,8 +123,8 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
                 setHealthIconFilePath(data.url);
                 setCurrentHealthIconFileName(data.fileName);
             } catch (error) {
-                console.error('Erro no upload do ícone de vida:', error);
-                alert('Erro no upload do arquivo. Tente novamente.');
+                console.error('Error uploading health icon:', error);
+                alert(t('validation.upload_error'));
             }
         }
     };
@@ -130,18 +132,18 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
     return (
         <div className="modal-overlay">
             <div className="modal-content" style={{ maxWidth: '800px' }}>
-                <h2 className="title">Configurações</h2>
+                <h2 className="title">{t('settings.title')}</h2>
                 <div className="sidebar-modal">
                     <div className='modal-navbar'>
                         <ul>
                             <li className={`navbar-button ${activeTab === "general" ? "active" : ""}`} onClick={() => setActiveTab("general")}>
-                                Geral
+                                {t('settings.general')}
                             </li>
                             <li className={`navbar-button ${activeTab === "overlay" ? "active" : ""}`} onClick={() => setActiveTab("overlay")}>
-                                Overlay
+                                {t('settings.overlay')}
                             </li>
                             <li className={`navbar-button ${activeTab === "about" ? "active" : ""}`} onClick={() => setActiveTab("about")}>
-                                Sobre
+                                {t('settings.about')}
                             </li>
                         </ul>
                     </div>
@@ -149,9 +151,9 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
                         <form onSubmit={handleSubmit}>
                             {activeTab === "general" && (
                                 <div className="modal-column modal-full-width">
-                                    <h4 className='title'>Aplicativo</h4>
+                                    <h4 className='title'>{t('settings.application')}</h4>
                                     <label>
-                                        <p className='button-text'>Idioma</p>
+                                        <p className='button-text'>{t('settings.language')}</p>
                                         <select value={language} onChange={(e) => setLanguage(e.target.value)} required>
                                             <option value="pt-BR">Português (Brasil)</option>
                                             <option value="en-US">English (US)</option>
@@ -162,10 +164,10 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
 
                             {activeTab === "overlay" && (
                                 <div className="modal-column modal-full-width">
-                                    <h4 className='title'>Componentes</h4>
+                                    <h4 className='title'>{t('settings.components')}</h4>
                                     <div className="modal-row">
                                         <label className='inline-label'>
-                                            <p className='button-text'>Mostrar nome</p>
+                                            <p className='button-text'>{t('settings.show_name')}</p>
                                             <input
                                                 type="checkbox"
                                                 checked={showName}
@@ -175,7 +177,7 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
                                     </div>
                                     <div className="modal-row">
                                         <label className='inline-label'>
-                                            <p className='button-text'>Mostrar HP</p>
+                                            <p className='button-text'>{t('settings.show_hp')}</p>
                                             <input
                                                 type="checkbox"
                                                 checked={showHealth}
@@ -185,7 +187,7 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
                                     </div>
                                     <div className="modal-row">
                                         <label className='inline-label'>
-                                            <p className='button-text'>Mostrar ícone de HP</p>
+                                            <p className='button-text'>{t('settings.show_hp_icon')}</p>
                                             <input
                                                 type="checkbox"
                                                 checked={showIcon}
@@ -195,7 +197,7 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
                                     </div>
                                     <div className="modal-row">
                                         <label className='inline-label'>
-                                            <p className='button-text'>Mostrar ícone do personagem</p>
+                                            <p className='button-text'>{t('settings.show_character_icon')}</p>
                                             <input
                                                 type="checkbox"
                                                 checked={showCharacterIcon}
@@ -203,9 +205,9 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
                                             />
                                         </label>
                                     </div>
-                                    <h4 className='title'>Texto</h4>
+                                    <h4 className='title'>{t('settings.text')}</h4>
                                     <label>
-                                        <p className='button-text'>Fonte</p>
+                                        <p className='button-text'>{t('settings.font')}</p>
                                         <select value={fontFamily || "Poppins"} onChange={(e) => setFontFamily(e.target.value)} required>
                                             <option style={{ fontFamily: "Arial" }} value="Arial">Arial</option>
                                             <option style={{ fontFamily: "Poppins" }} value="Poppins">Poppins</option>
@@ -223,7 +225,7 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
                                     </label>
                                     <div className="modal-row">
                                         <label>
-                                            <p className='button-text'>Tamanho do texto (pt)</p>
+                                            <p className='button-text'>{t('settings.font_size')}</p>
                                             <input
                                                 type="number"
                                                 value={fontSize}
@@ -234,7 +236,7 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
                                             />
                                         </label>
                                         <label>
-                                            <p className='button-text'>Cor do texto</p>
+                                            <p className='button-text'>{t('settings.font_color')}</p>
                                             <input
                                                 type="color"
                                                 value={fontColor}
@@ -244,10 +246,10 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
                                         </label>
                                     </div>
 
-                                    <h4 className='title'>Ícones</h4>
+                                    <h4 className='title'>{t('settings.icons')}</h4>
                                     <div className="modal-row">
                                         <label>
-                                            <p className='button-text'>Tamanho do ícone de HP (px)</p>
+                                            <p className='button-text'>{t('settings.hp_icon_size')}</p>
                                             <input
                                                 type="number"
                                                 value={iconsSize}
@@ -258,7 +260,7 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
                                             />
                                         </label>
                                         <label>
-                                            <p className='button-text'>Tam. do ícone do personagem (px)</p>
+                                            <p className='button-text'>{t('settings.character_icon_size')}</p>
                                             <input
                                                 type="number"
                                                 value={characterIconSize}
@@ -271,7 +273,7 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
                                     </div>
                                     <div className="modal-row">
                                         <label>
-                                            <p className='button-text'>Ícone de HP</p>
+                                            <p className='button-text'>{t('settings.hp_icon')}</p>
                                             <div id="icon-preview-container" style={{ width: '50px', height: '50px' }} className={healthIconFilePath ? 'has-image' : ''}>
                                                 <input type="file" accept="image/*" onChange={handleHealthIconUpload} />
                                                 <MdOutlineImage size={60} />
@@ -293,10 +295,10 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
                 </div>
                 <div className="modal-actions">
                     <button className="button" type="submit" onClick={handleSubmit}>
-                        Salvar
+                        {t('common.save')}
                     </button>
                     <button className="button" type="button" onClick={handleClose}>
-                        Cancelar
+                        {t('common.cancel')}
                     </button>
                 </div>
             </div>

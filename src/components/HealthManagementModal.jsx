@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import '../styles/Modal.css';
 import HealthBar from './HealthBar';
+import { useI18n } from '../i18n/i18nContext';
 
 function HealthManagementModal({ isOpen, onClose, onUpdate, character = null, isHealing = false }) {
+    const { t } = useI18n();
     const [amount, setAmount] = useState(0);
     const [visualHp, setVisualHp] = useState(0);
     const [visualMaxHp, setVisualMaxHp] = useState(0);
@@ -19,7 +21,7 @@ function HealthManagementModal({ isOpen, onClose, onUpdate, character = null, is
         e.preventDefault();
 
         if (!amount || amount <= 0) {
-            alert("Por favor, insira um valor válido.");
+            alert(t('validation.valid_amount'));
             return;
         }
 
@@ -47,7 +49,7 @@ function HealthManagementModal({ isOpen, onClose, onUpdate, character = null, is
     return (
         <div className="modal-overlay">
             <div className="modal-content">
-                <h2 className="title">{isHealing ? `Curar ${character.name}` : `Causar dano a ${character.name}`}</h2>
+                <h2 className="title">{isHealing ? t('characters.heal_character', { name: character.name }) : t('characters.damage_character', { name: character.name })}</h2>
                 <form onSubmit={handleSubmit}>
                     <div className="modal-row">
                         <div className="modal-column">
@@ -59,17 +61,17 @@ function HealthManagementModal({ isOpen, onClose, onUpdate, character = null, is
                         </div>
                         <div className="modal-column modal-full-width">
                             <label>
-                                HP atual
+                                {t('characters.current_hp')}
                                 <HealthBar currentHealth={visualHp} maxHealth={visualMaxHp} />
                             </label>
                             <label>
                                 <div style={{ fontSize: '10pt', color: 'rgba(255, 255, 255, 0.7)' }}>
-                                    {isHealing ? 'Quantidade de cura' : 'Quantidade de dano'}
+                                    {isHealing ? t('characters.heal_amount') : t('characters.damage_amount')}
                                 </div>
                                 <input
                                     type="number"
                                     value={amount}
-                                    onChange={(e) => { 
+                                    onChange={(e) => {
                                         const newAmount = parseInt(e.target.value) || 0;
                                         setAmount(newAmount);
                                         setVisualHp(isHealing ? Math.min(character.hp + newAmount, character.maxHp) : Math.max(character.hp - newAmount, 0));
@@ -84,10 +86,10 @@ function HealthManagementModal({ isOpen, onClose, onUpdate, character = null, is
                 </form>
                 <div className="modal-actions">
                     <button className="button" type="submit" onClick={handleSubmit}>
-                        Salvar
+                        {t('common.save')}
                     </button>
                     <button className="button" type="button" onClick={handleClose}>
-                        Cancelar
+                        {t('common.cancel')}
                     </button>
                 </div>
             </div>

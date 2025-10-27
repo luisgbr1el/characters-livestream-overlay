@@ -7,8 +7,10 @@ import SettingsModal from '../components/SettingsModal.jsx'
 import HealthManagementModal from '../components/HealthManagementModal.jsx';
 import '../styles/App.css'
 import charactersList from "../../server/data/characters.json"
+import { useI18n } from '../i18n/i18nContext';
 
 function App() {
+  const { t } = useI18n();
   let [characters, setCharacters] = useState(charactersList);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -139,15 +141,15 @@ function App() {
       <div className='navbar'>
         <button className='button' onClick={handleOpenSettingsModal}>
           <TbSettings size={iconsSize} />
-          <p className='button-text'>Configurações</p>
+          <p className='button-text'>{t('common.settings')}</p>
         </button>
       </div>
       <div className='characters'>
         <div className='header'>
-          <h2 className='title'>Personagens</h2>
+          <h2 className='title'>{t('characters.title')}</h2>
           <button className='button' onClick={handleOpenModal}>
             <TbPlus size={iconsSize} />
-            <p className='button-text'>Novo</p>
+            <p className='button-text'>{t('common.new')}</p>
           </button>
         </div>
         <div className='list'>

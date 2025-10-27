@@ -108,7 +108,7 @@ const cleanupOldFiles = () => {
 setInterval(cleanupOldFiles, 60 * 60 * 1000);
 
 const defaultSettings = {
-  general: { language: "pt-BR" },
+  general: { language: "en-US" },
   overlay: {
     show_icon: true,
     show_character_icon: true,

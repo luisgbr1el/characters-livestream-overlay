@@ -5,14 +5,17 @@ import { TbPencil } from "react-icons/tb";
 import { TbHeartPlus } from "react-icons/tb";
 import { TbHeartMinus } from "react-icons/tb";
 import { TbLink } from "react-icons/tb";
+import { useI18n } from '../i18n/i18nContext';
 
 function CharacterCard({ id, name, icon, hp, maxHp, onEdit, onHeal, onDamage }) {
+    const { t } = useI18n();
+
     const handleCopyUrl = () => {
         const url = "http://localhost:3000/overlay/" + id;
         navigator.clipboard.writeText(url).then(() => {
-            alert("URL copiada para a área de transferência!");
+            alert(t('characters.url_copied'));
         }).catch(err => {
-            console.error("Erro ao copiar URL: ", err);
+            console.error("Error copying URL: ", err);
         });
     };
 
@@ -30,22 +33,22 @@ function CharacterCard({ id, name, icon, hp, maxHp, onEdit, onHeal, onDamage }) 
                     <button id={`heal-button-${name}`} className="action-button" onClick={onHeal}>
                         <TbHeartPlus size={15} />
                     </button>
-                    <Tooltip elementId={`heal-button-${name}`} text="Cura" position="left" />
+                    <Tooltip elementId={`heal-button-${name}`} text={t('common.heal')} position="left" />
 
                     <button id={`damage-button-${name}`} className="action-button" onClick={onDamage}>
                         <TbHeartMinus size={15} />
                     </button>
-                    <Tooltip elementId={`damage-button-${name}`} text="Dano" position="left" />
+                    <Tooltip elementId={`damage-button-${name}`} text={t('common.damage')} position="left" />
 
                     <button id={`copy-url-button-${name}`} className="action-button" onClick={handleCopyUrl}>
                         <TbLink size={15} />
                     </button>
-                    <Tooltip elementId={`copy-url-button-${name}`} text="Copiar URL" position="left" />
+                    <Tooltip elementId={`copy-url-button-${name}`} text={t('common.copy_url')} position="left" />
 
                     <button id={`edit-button-${name}`} className="action-button" onClick={onEdit}>
                         <TbPencil size={15} />
                     </button>
-                    <Tooltip elementId={`edit-button-${name}`} text="Editar" position="left" />
+                    <Tooltip elementId={`edit-button-${name}`} text={t('common.edit')} position="left" />
                 </div>
             </div>
         </>
