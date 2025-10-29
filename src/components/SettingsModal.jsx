@@ -158,8 +158,8 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
                                         <label>
                                             <p className='button-text'>{t('settings.language')}</p>
                                             <select value={language} onChange={(e) => setLanguage(e.target.value)} required>
-                                                <option value="pt-BR">Português (Brasil)</option>
                                                 <option value="en-US">English (US)</option>
+                                                <option value="pt-BR">Português (Brasil)</option>
                                             </select>
                                         </label>
                                     </div>
