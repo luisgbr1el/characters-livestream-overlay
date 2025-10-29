@@ -4,8 +4,9 @@
     width: 25%;
     height: auto;
     position: absolute;
-    right: 10px;
-    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 20px;
     display: flex;
     flex-direction: row;
     align-items: center;
