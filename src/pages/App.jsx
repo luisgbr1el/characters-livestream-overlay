@@ -8,9 +8,11 @@ import HealthManagementModal from '../components/HealthManagementModal.jsx';
 import '../styles/App.css'
 import charactersList from "../../server/data/characters.json"
 import { useI18n } from '../i18n/i18nContext';
+import { useAlert } from '../hooks/useAlert.jsx';
 
 function App() {
   const { t } = useI18n();
+  const { showAlert, AlertComponent } = useAlert();
   let [characters, setCharacters] = useState(charactersList);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -56,7 +58,7 @@ function App() {
   }
 
   const handleUpdateSettings = (newSettings) => {
-    console.log('Configurações atualizadas:', newSettings);
+    showAlert('success', t('settings.updated'));
   };
 
   const handleCreateCharacter = async (newCharacter) => {
@@ -78,12 +80,13 @@ function App() {
         })
       });
 
-      if (response.ok)
+      if (response.ok) {
         setCharacters([...characters, newCharacter]);
-      else
-        console.error('Erro ao criar personagem na API:', response.statusText);
+        showAlert('success', t('characters.created'));
+      } else
+        showAlert('error', t('characters.create_error'));
     } catch (error) {
-      console.error('Erro de rede ao criar personagem:', error);
+      showAlert('error', t('characters.network_error'));
     }
   };
 
@@ -97,11 +100,11 @@ function App() {
         if (response.ok) {
           const filteredCharacters = characters.filter(char => char.id !== updatedCharacter.id);
           setCharacters(filteredCharacters);
-        } else {
-          console.error('Erro ao deletar personagem na API:', response.statusText);
-        }
+          showAlert('success', t('characters.deleted'));
+        } else 
+          showAlert('error', t('characters.delete_error'));
       } catch (error) {
-        console.error('Erro de rede ao deletar personagem:', error);
+        showAlert('error', t('characters.network_error'));
       }
       return;
     }
@@ -129,10 +132,11 @@ function App() {
           char.id === updatedCharacter.id ? updatedCharacter : char
         );
         setCharacters(updatedCharacters);
+        showAlert('success', t('characters.updated'));
       } else
-        console.error('Erro ao atualizar personagem na API:', response.statusText);
+        showAlert('error', t('characters.update_error'));
     } catch (error) {
-      console.error('Erro de rede ao atualizar personagem:', error);
+      showAlert('error', t('characters.network_error'));
     }
   };
 
@@ -188,6 +192,8 @@ function App() {
         character={characterToEdit}
         isHealing={isHealing}
       />
+      
+      <AlertComponent />
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import '../styles/CharacterCard.css'
 import HealthBar from './HealthBar';
 import Tooltip from './Tooltip';
+import { useAlert } from '../hooks/useAlert.jsx';
 import { TbPencil } from "react-icons/tb";
 import { TbHeartPlus } from "react-icons/tb";
 import { TbHeartMinus } from "react-icons/tb";
@@ -9,13 +10,15 @@ import { useI18n } from '../i18n/i18nContext';
 
 function CharacterCard({ id, name, icon, hp, maxHp, onEdit, onHeal, onDamage }) {
     const { t } = useI18n();
+    const { showAlert, AlertComponent } = useAlert();
 
     const handleCopyUrl = () => {
         const url = "http://localhost:3000/overlay/" + id;
         navigator.clipboard.writeText(url).then(() => {
-            alert(t('characters.url_copied'));
+            showAlert('success', t('characters.url_copied'))
         }).catch(err => {
             console.error("Error copying URL: ", err);
+            showAlert('error', t('characters.url_copy_error'))
         });
     };
 
@@ -51,6 +54,7 @@ function CharacterCard({ id, name, icon, hp, maxHp, onEdit, onHeal, onDamage }) 
                     <Tooltip elementId={`edit-button-${name}`} text={t('common.edit')} position="left" />
                 </div>
             </div>
+            <AlertComponent />
         </>
     );
 }

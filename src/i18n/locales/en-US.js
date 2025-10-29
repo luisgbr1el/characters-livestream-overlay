@@ -24,7 +24,16 @@ export default {
         delete_confirm: "Are you sure you want to delete this character?",
         heal_amount: "Heal amount",
         damage_amount: "Damage amount",
-        url_copied: "URL copied to clipboard!"
+        url_copied: "URL copied to clipboard!",
+        created: "Character created successfully!",
+        updated: "Character updated successfully!",
+        deleted: "Character deleted successfully!",
+        create_error: "Error creating character. Please try again.",
+        update_error: "Error updating character. Please try again.",
+        delete_error: "Error deleting character. Please try again.",
+        network_error: "Network error. Please check your connection.",
+        url_copy_error: "Error copying the URL.",
+        no_changes: "No changes detected."
     },
     settings: {
         title: "Settings",
@@ -45,7 +54,8 @@ export default {
         font_color: "Font color",
         hp_icon_size: "HP icon size (px)",
         character_icon_size: "Character icon size (px)",
-        hp_icon: "HP icon"
+        hp_icon: "HP icon",
+        updated: "Settings updated successfully!"
     },
     validation: {
         fill_all_fields: "Please fill in all fields.",

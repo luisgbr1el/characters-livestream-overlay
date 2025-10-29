@@ -24,7 +24,16 @@ export default {
         delete_confirm: "Tem certeza que deseja deletar este personagem?",
         heal_amount: "Quantidade de cura",
         damage_amount: "Quantidade de dano",
-        url_copied: "URL copiada para a área de transferência!"
+        url_copied: "URL copiada para a área de transferência!",
+        created: "Personagem criado com sucesso!",
+        updated: "Personagem atualizado com sucesso!",
+        deleted: "Personagem excluído com sucesso!",
+        create_error: "Erro ao criar personagem. Tente novamente.",
+        update_error: "Erro ao atualizar personagem. Tente novamente.",
+        delete_error: "Erro ao excluir personagem. Tente novamente.",
+        network_error: "Erro de rede. Verifique sua conexão.",
+        url_copy_error: "Não foi possível copiar a URL.",
+        no_changes: "Nenhuma alteração detectada."
     },
     settings: {
         title: "Configurações",
@@ -45,7 +54,8 @@ export default {
         font_color: "Cor do texto",
         hp_icon_size: "Tamanho do ícone de HP (px)",
         character_icon_size: "Tam. do ícone do personagem (px)",
-        hp_icon: "Ícone de HP"
+        hp_icon: "Ícone de HP",
+        updated: "Configurações atualizadas com sucesso!"
     },
     validation: {
         fill_all_fields: "Por favor, preencha todos os campos.",
