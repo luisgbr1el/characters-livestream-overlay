@@ -12,7 +12,7 @@ function NewCharacterModal({ isOpen, onClose, onCreate, onUpdate, isEditing = fa
     const [healthPoints, setHealthPoints] = useState();
     const [maxHealthPoints, setMaxHealthPoints] = useState();
     const [currentFileName, setCurrentFileName] = useState("");
-    const { showAlert, AlertComponent } = useAlert();
+    const { showAlert } = useAlert();
 
     const fileSessionRef = useRef(new FileSessionManager());
 
@@ -27,6 +27,21 @@ function NewCharacterModal({ isOpen, onClose, onCreate, onUpdate, isEditing = fa
     }, [isEditing, characterToEdit]);
 
     if (!isOpen) return null;
+
+    const areObjectsEqual = (obj1, obj2) => {
+        const keys1 = Object.keys(obj1);
+        const keys2 = Object.keys(obj2);
+        
+        if (keys1.length !== keys2.length)
+            return false;
+        
+        for (let key of keys1) {
+            if (obj1[key] !== obj2[key])
+                return false;
+        }
+        
+        return true;
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -43,8 +58,8 @@ function NewCharacterModal({ isOpen, onClose, onCreate, onUpdate, isEditing = fa
 
         if (isEditing) {
             const { id, ...oldCharacterInfos } = characterToEdit;
-            if (JSON.stringify(oldCharacterInfos) === JSON.stringify(characterData))
-                showAlert('error', t('characters.no_changes'))
+            if (areObjectsEqual(oldCharacterInfos, characterData))
+                showAlert('error', t('characters.no_changes'));
             else {
                 onUpdate({ ...characterData, id: characterToEdit.id });
                 handleClose();
@@ -141,7 +156,6 @@ function NewCharacterModal({ isOpen, onClose, onCreate, onUpdate, isEditing = fa
                     </div>
                 </div>
             </div>
-            <AlertComponent />
         </>
     );
 }

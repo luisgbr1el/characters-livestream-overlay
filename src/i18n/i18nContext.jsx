@@ -50,22 +50,8 @@ export function I18nProvider({ children }) {
         return value || key;
     };
 
-    const changeLocale = async (newLocale) => {
+    const changeLocale = (newLocale) => {
         setLocale(newLocale);
-
-        try {
-            await fetch('http://localhost:3000/api/settings', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    general: { language: newLocale }
-                })
-            });
-        } catch (error) {
-            console.error('Error updating language setting:', error);
-        }
     };
 
     return (

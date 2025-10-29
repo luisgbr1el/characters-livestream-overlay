@@ -10,7 +10,7 @@ import { useI18n } from '../i18n/i18nContext';
 
 function CharacterCard({ id, name, icon, hp, maxHp, onEdit, onHeal, onDamage }) {
     const { t } = useI18n();
-    const { showAlert, AlertComponent } = useAlert();
+    const { showAlert } = useAlert();
 
     const handleCopyUrl = () => {
         const url = "http://localhost:3000/overlay/" + id;
@@ -54,7 +54,6 @@ function CharacterCard({ id, name, icon, hp, maxHp, onEdit, onHeal, onDamage }) 
                     <Tooltip elementId={`edit-button-${name}`} text={t('common.edit')} position="left" />
                 </div>
             </div>
-            <AlertComponent />
         </>
     );
 }

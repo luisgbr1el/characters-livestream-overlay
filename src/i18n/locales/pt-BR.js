@@ -25,15 +25,17 @@ export default {
         heal_amount: "Quantidade de cura",
         damage_amount: "Quantidade de dano",
         url_copied: "URL copiada para a área de transferência!",
-        created: "Personagem criado com sucesso!",
-        updated: "Personagem atualizado com sucesso!",
-        deleted: "Personagem excluído com sucesso!",
+        created: "Personagem criado!",
+        updated: "Personagem atualizado!",
+        deleted: "Personagem excluído!",
         create_error: "Erro ao criar personagem. Tente novamente.",
         update_error: "Erro ao atualizar personagem. Tente novamente.",
         delete_error: "Erro ao excluir personagem. Tente novamente.",
         network_error: "Erro de rede. Verifique sua conexão.",
         url_copy_error: "Não foi possível copiar a URL.",
-        no_changes: "Nenhuma alteração detectada."
+        no_changes: "Nenhuma alteração detectada.",
+        cannot_be_healed: "{name} não pode ser curado.",
+        cannot_take_damage: "{name} não pode tomar dano."
     },
     settings: {
         title: "Configurações",
@@ -55,7 +57,7 @@ export default {
         hp_icon_size: "Tamanho do ícone de HP (px)",
         character_icon_size: "Tam. do ícone do personagem (px)",
         hp_icon: "Ícone de HP",
-        updated: "Configurações atualizadas com sucesso!"
+        updated: "Configurações atualizadas!"
     },
     validation: {
         fill_all_fields: "Por favor, preencha todos os campos.",

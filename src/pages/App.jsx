@@ -12,7 +12,7 @@ import { useAlert } from '../hooks/useAlert.jsx';
 
 function App() {
   const { t } = useI18n();
-  const { showAlert, AlertComponent } = useAlert();
+  const { showAlert } = useAlert();
   let [characters, setCharacters] = useState(charactersList);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -48,9 +48,15 @@ function App() {
   };
 
   const handleOpenHealthModal = (healing = false, character = null) => {
-    setIsHealing(healing);
-    setIsHealthModalOpen(true);
-    setCharacterToEdit(character);
+    if (healing && character?.hp == character?.maxHp)
+      showAlert('warning', t('characters.cannot_be_healed', { name: character.name }))
+    else if (!healing && character?.hp == 0)
+      showAlert('warning', t('characters.cannot_take_damage', { name: character.name }))
+    else {
+        setIsHealing(healing);
+        setIsHealthModalOpen(true);
+        setCharacterToEdit(character);
+    }
   };
 
   const handleCloseHealthModal = () => {
@@ -58,7 +64,7 @@ function App() {
   }
 
   const handleUpdateSettings = (newSettings) => {
-    showAlert('success', t('settings.updated'));
+    return;
   };
 
   const handleCreateCharacter = async (newCharacter) => {
@@ -192,8 +198,6 @@ function App() {
         character={characterToEdit}
         isHealing={isHealing}
       />
-      
-      <AlertComponent />
     </div>
   )
 }

@@ -6,7 +6,7 @@ import { useI18n } from '../i18n/i18nContext';
 import { useAlert } from '../hooks/useAlert';
 
 function SettingsModal({ isOpen, onClose, onUpdate }) {
-    const { t } = useI18n();
+    const { t, changeLocale } = useI18n();
     const [activeTab, setActiveTab] = useState("general");
     const [language, setLanguage] = useState("pt-BR");
     const [showIcon, setShowIcon] = useState(true);
@@ -20,7 +20,7 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
     const [healthIconFilePath, setHealthIconFilePath] = useState(null);
     const [fontFamily, setFontFamily] = useState(null);
     const [currentHealthIconFileName, setCurrentHealthIconFileName] = useState("");
-    const { showAlert, AlertComponent } = useAlert();
+    const { showAlert } = useAlert();
 
     const fileSessionRef = useRef(new FileSessionManager());
 
@@ -60,9 +60,8 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (currentHealthIconFileName) {
+        if (currentHealthIconFileName)
             await fileSessionRef.current.confirmFile(currentHealthIconFileName);
-        }
 
         const settingsData = {
             general: {
@@ -92,6 +91,7 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
             });
 
             if (response.ok) {
+                changeLocale(language);
                 onUpdate(settingsData);
                 handleClose();
             } else {
@@ -306,7 +306,6 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
                     </div>
                 </div>
             </div>
-            <AlertComponent />
         </>
     );
 }

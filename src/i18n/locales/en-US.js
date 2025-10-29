@@ -25,15 +25,17 @@ export default {
         heal_amount: "Heal amount",
         damage_amount: "Damage amount",
         url_copied: "URL copied to clipboard!",
-        created: "Character created successfully!",
-        updated: "Character updated successfully!",
-        deleted: "Character deleted successfully!",
+        created: "Character created!",
+        updated: "Character updated!",
+        deleted: "Character deleted!",
         create_error: "Error creating character. Please try again.",
         update_error: "Error updating character. Please try again.",
         delete_error: "Error deleting character. Please try again.",
         network_error: "Network error. Please check your connection.",
         url_copy_error: "Error copying the URL.",
-        no_changes: "No changes detected."
+        no_changes: "No changes detected.",
+        cannot_be_healed: "{name} can't be healed.",
+        cannot_take_damage: "{name} can't take damage."
     },
     settings: {
         title: "Settings",
@@ -55,7 +57,7 @@ export default {
         hp_icon_size: "HP icon size (px)",
         character_icon_size: "Character icon size (px)",
         hp_icon: "HP icon",
-        updated: "Settings updated successfully!"
+        updated: "Settings updated!"
     },
     validation: {
         fill_all_fields: "Please fill in all fields.",

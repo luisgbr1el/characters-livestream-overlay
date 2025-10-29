@@ -9,7 +9,7 @@ function HealthManagementModal({ isOpen, onClose, onUpdate, character = null, is
     const [amount, setAmount] = useState(0);
     const [visualHp, setVisualHp] = useState(0);
     const [visualMaxHp, setVisualMaxHp] = useState(0);
-    const { showAlert, AlertComponent } = useAlert();
+    const { showAlert } = useAlert();
 
     useEffect(() => {
         setAmount(0);
@@ -96,7 +96,6 @@ function HealthManagementModal({ isOpen, onClose, onUpdate, character = null, is
                     </div>
                 </div>
             </div>
-            <AlertComponent />
         </>
     );
 }
