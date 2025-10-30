@@ -93,7 +93,6 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
             if (response.ok) {
                 changeLocale(language);
                 onUpdate(settingsData);
-                handleClose();
             } else {
                 console.error('Error saving settings:', response.statusText);
                 showAlert('error', t('validation.save_error'));
@@ -134,7 +133,7 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
     return (
         <>
             <div className="modal-overlay">
-                <div className="modal-content" style={{ maxWidth: '800px' }}>
+                <div className="modal-content" style={{ maxWidth: '50%' }}>
                     <h2 className="title">{t('settings.title')}</h2>
                     <div className="sidebar-modal">
                         <div className='modal-navbar'>

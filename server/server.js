@@ -50,11 +50,11 @@ const deleteFile = (filePath) => {
 
 const registerTemporaryFile = (sessionId, fileName) => {
   const fullPath = path.join(uploadDir, fileName);
-  
+
   if (!temporaryFiles.has(sessionId)) {
     temporaryFiles.set(sessionId, new Set());
   }
-  
+
   temporaryFiles.get(sessionId).add(fileName);
   fileToSession.set(fileName, sessionId);
 };
@@ -84,15 +84,15 @@ const cleanupOldFiles = () => {
     const files = fs.readdirSync(uploadDir);
     const now = Date.now();
     const maxAge = 24 * 60 * 60 * 1000;
-    
+
     files.forEach(fileName => {
       const filePath = path.join(uploadDir, fileName);
       const stats = fs.statSync(filePath);
       const age = now - stats.mtime.getTime();
-      
+
       if (age > maxAge && fileToSession.has(fileName)) {
         deleteFile(filePath);
-        
+
         const sessionId = fileToSession.get(fileName);
         if (sessionId && temporaryFiles.has(sessionId)) {
           temporaryFiles.get(sessionId).delete(fileName);
@@ -144,23 +144,23 @@ app.put("/api/settings", (req, res) => {
         return res.status(400).json({ error: `This key is not a setting: ${key}` });
       }
     }
-    
+
     if (settingsBody.overlay && settingsBody.overlay.health_icon_file_path) {
       const newIconPath = settingsBody.overlay.health_icon_file_path;
       const currentIconPath = currentSettings.overlay.health_icon_file_path;
-      
+
       if (currentIconPath && currentIconPath !== newIconPath) {
         const oldFileName = currentIconPath.replace('/uploads/', '');
         const oldFilePath = path.join(uploadDir, oldFileName);
         deleteFile(oldFilePath);
       }
-      
+
       if (newIconPath) {
         const newFileName = newIconPath.replace('/uploads/', '');
         confirmFile(newFileName);
       }
     }
-    
+
     const newSettings = { ...currentSettings, ...settingsBody };
     writeJson(SETTINGS_PATH, newSettings);
     io.emit("settingsUpdated", newSettings);
@@ -190,9 +190,9 @@ app.post("/api/upload", (req, res) => {
     const sessionId = req.headers['x-session-id'] || 'default';
     const fileName = req.file.filename;
     const url = `/uploads/${fileName}`;
-    
+
     registerTemporaryFile(sessionId, fileName);
-    
+
     res.json({ url, fileName });
   });
 });
@@ -202,7 +202,7 @@ app.post("/api/confirm-file", (req, res) => {
   if (!fileName) {
     return res.status(400).json({ error: "fileName is required" });
   }
-  
+
   confirmFile(fileName);
   res.json({ success: true });
 });
@@ -218,16 +218,16 @@ app.delete("/api/delete-file", (req, res) => {
   if (!fileName) {
     return res.status(400).json({ error: "fileName is required" });
   }
-  
+
   const fullPath = path.join(uploadDir, fileName);
   deleteFile(fullPath);
-  
+
   const sessionId = fileToSession.get(fileName);
   if (sessionId && temporaryFiles.has(sessionId)) {
     temporaryFiles.get(sessionId).delete(fileName);
     fileToSession.delete(fileName);
   }
-  
+
   res.json({ success: true });
 });
 
@@ -279,7 +279,7 @@ app.put("/api/characters/:id", (req, res) => {
       const oldFilePath = path.join(uploadDir, oldFileName);
       deleteFile(oldFilePath);
     }
-    
+
     const newFileName = req.body.icon.replace('/uploads/', '');
     confirmFile(newFileName);
   }
@@ -296,13 +296,13 @@ app.delete("/api/characters/:id", (req, res) => {
   const id = req.params.id;
   let chars = readJson(CHARACTERS_PATH, defaultCharacters);
   const characterToDelete = chars.find(c => c.id === id);
-  
+
   if (characterToDelete && characterToDelete.icon) {
     const iconPath = characterToDelete.icon.replace('/uploads/', '');
     const fullIconPath = path.join(uploadDir, iconPath);
     deleteFile(fullIconPath);
   }
-  
+
   const newChars = chars.filter(c => c.id !== id);
   writeJson(CHARACTERS_PATH, newChars);
   io.emit("charactersUpdated", newChars);
@@ -337,17 +337,19 @@ app.get("/overlay/:id", (req, res) => {
     <style>
       body { margin:0; background: transparent; }
       .character-overlay { 
+        width: 20%;
         font-size: ${fontSize}px; 
         color: ${fontColor}; 
         font-family: "${fontFamily}", Arial, sans-serif; 
         display: flex; 
         flex-direction: column; 
-        align-items: flex-start; 
+        align-items: center; 
         gap: 4px; 
       }
       .character-name { 
         font-weight: bold; 
         margin: 0; 
+        text-align: center;
         ${!showName ? 'display: none;' : ''}
       }
       .hp-container { 
@@ -359,7 +361,8 @@ app.get("/overlay/:id", (req, res) => {
       .character-icon { 
         width: ${characterIconSize}px; 
         height: ${characterIconSize}px; 
-        object-fit: contain;
+        object-fit: cover;
+        border-radius: 5%;
         ${!showCharacterIcon ? 'display: none;' : ''}
       }
       .health-icon { 
@@ -373,9 +376,9 @@ app.get("/overlay/:id", (req, res) => {
   <body>
     <div id="root">
       <div class="character-overlay" id="characterOverlay">
-        ${character && showName ? `<h3 class="character-name" id="characterName">${character.name || ''}</h3>` : ''}
+      ${character && character.icon && showCharacterIcon ? `<img src="${character.icon}" class="character-icon" id="characterIcon" />` : ''}
+      ${character && showName ? `<h3 class="character-name" id="characterName">${character.name || ''}</h3>` : ''}
         <div class="hp-container" id="hpContainer">
-          ${character && character.icon && showCharacterIcon ? `<img src="${character.icon}" class="character-icon" id="characterIcon" />` : ''}
           ${healthIconPath && showIcon ? `<img src="${healthIconPath}" class="health-icon" id="healthIcon" />` : ''}
           <span id="hpText">${character ? `${character.hp ?? 0} / ${character.maxHp ?? 0}` : '—'}</span>
         </div>
