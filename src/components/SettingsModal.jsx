@@ -133,7 +133,7 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
     return (
         <>
             <div className="modal-overlay">
-                <div className="modal-content" style={{ maxWidth: '50%' }}>
+                <div className="modal-content" style={{ maxWidth: '55%' }}>
                     <h2 className="title">{t('settings.title')}</h2>
                     <div className="sidebar-modal">
                         <div className='modal-navbar'>
