@@ -4,6 +4,7 @@ import { MdOutlineImage } from "react-icons/md";
 import FileSessionManager from '../utils/fileSessionManager.js';
 import { useI18n } from '../i18n/i18nContext';
 import { useAlert } from '../hooks/useAlert';
+import ConfirmationModal from './ConfirmationModal.jsx';
 
 function NewCharacterModal({ isOpen, onClose, onCreate, onUpdate, isEditing = false, characterToEdit = null }) {
     const { t } = useI18n();
@@ -13,8 +14,14 @@ function NewCharacterModal({ isOpen, onClose, onCreate, onUpdate, isEditing = fa
     const [maxHealthPoints, setMaxHealthPoints] = useState();
     const [currentFileName, setCurrentFileName] = useState("");
     const { showAlert } = useAlert();
+    const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
 
     const fileSessionRef = useRef(new FileSessionManager());
+
+    const handleConfirmation = () => {
+        onUpdate({ id: characterToEdit.id, delete: true });
+        handleClose();
+    }
 
     useEffect(() => {
         if (isEditing && characterToEdit) {
@@ -31,15 +38,15 @@ function NewCharacterModal({ isOpen, onClose, onCreate, onUpdate, isEditing = fa
     const areObjectsEqual = (obj1, obj2) => {
         const keys1 = Object.keys(obj1);
         const keys2 = Object.keys(obj2);
-        
+
         if (keys1.length !== keys2.length)
             return false;
-        
+
         for (let key of keys1) {
             if (obj1[key] !== obj2[key])
                 return false;
         }
-        
+
         return true;
     };
 
@@ -103,6 +110,14 @@ function NewCharacterModal({ isOpen, onClose, onCreate, onUpdate, isEditing = fa
         }
     };
 
+    const handleOpenConfirmationModal = () => {
+        setIsConfirmationModalOpen(true);
+    };
+
+    const handleCloseConfirmationModal = () => {
+        setIsConfirmationModalOpen(false);
+    };
+
     return (
         <>
             <div className="modal-overlay">
@@ -138,12 +153,7 @@ function NewCharacterModal({ isOpen, onClose, onCreate, onUpdate, isEditing = fa
                     </form>
                     <div className="modal-actions" style={{ position: 'relative' }}>
                         {isEditing && (
-                            <button className="button delete-button" style={{ position: 'absolute', left: '0', top: '10px' }} type="button" onClick={() => {
-                                if (window.confirm(t('characters.delete_confirm'))) {
-                                    onUpdate({ id: characterToEdit.id, delete: true });
-                                    handleClose();
-                                }
-                            }}>
+                            <button className="button delete-button" style={{ position: 'absolute', left: '0', top: '10px' }} type="button" onClick={handleOpenConfirmationModal}>
                                 {t('common.delete')}
                             </button>
                         )}
@@ -156,6 +166,13 @@ function NewCharacterModal({ isOpen, onClose, onCreate, onUpdate, isEditing = fa
                     </div>
                 </div>
             </div>
+            <ConfirmationModal
+                isOpen={isConfirmationModalOpen}
+                onClose={handleCloseConfirmationModal}
+                onConfirm={handleConfirmation}
+                text={t('characters.delete_confirm')}
+                confirmButtonText={t('common.delete')}
+            />
         </>
     );
 }
