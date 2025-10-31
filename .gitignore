@@ -23,6 +23,5 @@ dist-ssr
 *.sln
 *.sw?
 
-server/data/characters.json
-server/data/settings.json
+server/data/*
 server/uploads/*
