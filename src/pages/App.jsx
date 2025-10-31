@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { TbSettings } from "react-icons/tb";
-import { TbPlus } from "react-icons/tb";
+import { TbSettings, TbPlus, TbFileCode } from "react-icons/tb";
 import CharacterCard from '../components/CharacterCard.jsx'
 import NewCharacterModal from '../components/NewCharacterModal.jsx'
 import SettingsModal from '../components/SettingsModal.jsx'
@@ -53,9 +52,9 @@ function App() {
     else if (!healing && character?.hp == 0)
       showAlert('warning', t('characters.cannot_take_damage', { name: character.name }))
     else {
-        setIsHealing(healing);
-        setIsHealthModalOpen(true);
-        setCharacterToEdit(character);
+      setIsHealing(healing);
+      setIsHealthModalOpen(true);
+      setCharacterToEdit(character);
     }
   };
 
@@ -107,7 +106,7 @@ function App() {
           const filteredCharacters = characters.filter(char => char.id !== updatedCharacter.id);
           setCharacters(filteredCharacters);
           showAlert('success', t('characters.deleted'));
-        } else 
+        } else
           showAlert('error', t('characters.delete_error'));
       } catch (error) {
         showAlert('error', t('characters.network_error'));
@@ -134,7 +133,7 @@ function App() {
       });
 
       if (response.ok) {
-        const updatedCharacters = characters.map(char => 
+        const updatedCharacters = characters.map(char =>
           char.id === updatedCharacter.id ? updatedCharacter : char
         );
         setCharacters(updatedCharacters);
@@ -157,10 +156,16 @@ function App() {
       <div className='characters'>
         <div className='header'>
           <h2 className='title'>{t('characters.title')}</h2>
-          <button className='button' onClick={handleOpenModal}>
-            <TbPlus size={iconsSize} />
-            <p className='button-text'>{t('common.new')}</p>
-          </button>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button className='button' onClick={handleOpenModal}>
+              <TbFileCode size={iconsSize} />
+              <p className='button-text'>Importar/Exportar</p>
+            </button>
+            <button className='button' onClick={handleOpenModal}>
+              <TbPlus size={iconsSize} />
+              <p className='button-text'>{t('common.new')}</p>
+            </button>
+          </div>
         </div>
         <div className='list'>
           {characters.map((character, index) => (
@@ -178,7 +183,7 @@ function App() {
           ))}
         </div>
       </div>
-      <NewCharacterModal 
+      <NewCharacterModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onCreate={handleCreateCharacter}

@@ -2,10 +2,7 @@ import '../styles/CharacterCard.css'
 import HealthBar from './HealthBar';
 import Tooltip from './Tooltip';
 import { useAlert } from '../hooks/useAlert.jsx';
-import { TbPencil } from "react-icons/tb";
-import { TbHeartPlus } from "react-icons/tb";
-import { TbHeartMinus } from "react-icons/tb";
-import { TbLink } from "react-icons/tb";
+import { TbPencil, TbHeartPlus, TbHeartMinus, TbLink } from "react-icons/tb";
 import { useI18n } from '../i18n/i18nContext';
 
 function CharacterCard({ id, name, icon, hp, maxHp, onEdit, onHeal, onDamage }) {
