@@ -172,6 +172,7 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
                                                 <p className='button-text'>{t('settings.show_name')}</p>
                                                 <input
                                                     type="checkbox"
+                                                    className="toggle-checkbox"
                                                     checked={showName}
                                                     onChange={(e) => setShowName(e.target.checked)}
                                                 />
@@ -182,6 +183,7 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
                                                 <p className='button-text'>{t('settings.show_hp')}</p>
                                                 <input
                                                     type="checkbox"
+                                                    className="toggle-checkbox"
                                                     checked={showHealth}
                                                     onChange={(e) => setShowHealth(e.target.checked)}
                                                 />
@@ -192,6 +194,7 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
                                                 <p className='button-text'>{t('settings.show_hp_icon')}</p>
                                                 <input
                                                     type="checkbox"
+                                                    className="toggle-checkbox"
                                                     checked={showIcon}
                                                     onChange={(e) => setShowIcon(e.target.checked)}
                                                 />
@@ -202,6 +205,7 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
                                                 <p className='button-text'>{t('settings.show_character_icon')}</p>
                                                 <input
                                                     type="checkbox"
+                                                    className="toggle-checkbox"
                                                     checked={showCharacterIcon}
                                                     onChange={(e) => setShowCharacterIcon(e.target.checked)}
                                                 />

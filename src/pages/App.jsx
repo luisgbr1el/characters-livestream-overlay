@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { TbSettings, TbPlus, TbFileCode } from "react-icons/tb";
+import { TbSettings, TbPlus, TbTools } from "react-icons/tb";
 import CharacterCard from '../components/CharacterCard.jsx'
 import NewCharacterModal from '../components/NewCharacterModal.jsx'
 import SettingsModal from '../components/SettingsModal.jsx'
 import HealthManagementModal from '../components/HealthManagementModal.jsx';
+import CharacterManagementModal from '../components/CharacterManagementModal.jsx';
 import '../styles/App.css'
 import charactersList from "../../server/data/characters.json"
 import { useI18n } from '../i18n/i18nContext';
@@ -18,6 +19,7 @@ function App() {
   const [characterToEdit, setCharacterToEdit] = useState(null);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isHealthModalOpen, setIsHealthModalOpen] = useState(false);
+  const [isCharacterMgmtModalOpen, setIsCharacterMgmtModalOpen] = useState(false);
   const [isHealing, setIsHealing] = useState(false);
 
   const iconsSize = 20;
@@ -45,6 +47,14 @@ function App() {
   const handleCloseSettingsModal = () => {
     setIsSettingsModalOpen(false);
   };
+
+  const handleOpenCharacterMgmtModal = () => {
+    setIsCharacterMgmtModalOpen(true);
+  }
+
+  const handleCloseCharacterMgmtModal = () => {
+    setIsCharacterMgmtModalOpen(false);
+  }
 
   const handleOpenHealthModal = (healing = false, character = null) => {
     if (healing && character?.hp == character?.maxHp)
@@ -157,9 +167,9 @@ function App() {
         <div className='header'>
           <h2 className='title'>{t('characters.title')}</h2>
           <div style={{ display: 'flex', gap: '10px' }}>
-            <button className='button' onClick={handleOpenModal}>
-              <TbFileCode size={iconsSize} />
-              <p className='button-text'>Importar/Exportar</p>
+            <button className='button' onClick={handleOpenCharacterMgmtModal}>
+              <TbTools size={iconsSize} />
+              <p className='button-text'>Gerenciar</p>
             </button>
             <button className='button' onClick={handleOpenModal}>
               <TbPlus size={iconsSize} />
@@ -202,6 +212,12 @@ function App() {
         onUpdate={handleUpdateCharacter}
         character={characterToEdit}
         isHealing={isHealing}
+      />
+      <CharacterManagementModal
+        isOpen={isCharacterMgmtModalOpen}
+        onClose={handleCloseCharacterMgmtModal}
+        characters={characters}
+        onUpdateCharacters={setCharacters}
       />
     </div>
   )

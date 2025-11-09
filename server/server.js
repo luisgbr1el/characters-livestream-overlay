@@ -8,6 +8,13 @@ import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
 import { readJson, writeJson } from "./utils/storage.js";
 
+const getLocalTimestamp = () => {
+  const now = new Date();
+  const offset = now.getTimezoneOffset();
+  const localTime = new Date(now.getTime() - (offset * 60 * 1000));
+  return localTime.toISOString();
+};
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -245,7 +252,8 @@ app.post("/api/characters", (req, res) => {
 
   const characterWithId = {
     id: uuidv4(),
-    ...newChar
+    ...newChar,
+    createdAt: getLocalTimestamp()
   };
 
   if (characterWithId.icon) {
@@ -284,12 +292,45 @@ app.put("/api/characters/:id", (req, res) => {
     confirmFile(newFileName);
   }
 
-  chars[idx] = { ...chars[idx], ...req.body };
+  const updatedData = { ...req.body };
+  delete updatedData.createdAt;
+
+  chars[idx] = { ...chars[idx], ...updatedData };
   writeJson(CHARACTERS_PATH, chars);
 
   io.emit("charactersUpdated", chars);
   io.emit("characterUpdated", { id, character: chars[idx] });
   res.json(chars[idx]);
+});
+
+app.delete("/api/characters/batch", (req, res) => {
+  const { ids } = req.body;
+
+  if (!ids || !Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ error: "IDs array is required and must not be empty" });
+  }
+
+  let chars = readJson(CHARACTERS_PATH, defaultCharacters);
+  const charactersToDelete = chars.filter(c => ids.includes(c.id));
+
+  charactersToDelete.forEach(character => {
+    if (character.icon) {
+      const iconPath = character.icon.replace('/uploads/', '');
+      const fullIconPath = path.join(uploadDir, iconPath);
+      deleteFile(fullIconPath);
+    }
+  });
+
+  const newChars = chars.filter(c => !ids.includes(c.id));
+
+  writeJson(CHARACTERS_PATH, newChars);
+  io.emit("charactersUpdated", newChars);
+
+  res.json({
+    ok: true,
+    deletedCount: charactersToDelete.length,
+    deletedIds: charactersToDelete.map(c => c.id)
+  });
 });
 
 app.delete("/api/characters/:id", (req, res) => {
@@ -516,7 +557,10 @@ io.on("connection", (socket) => {
 
     if (idx === -1) return;
 
-    chars[idx] = { ...chars[idx], ...payload.data };
+    const updatedData = { ...payload.data };
+    delete updatedData.createdAt;
+
+    chars[idx] = { ...chars[idx], ...updatedData };
     writeJson(CHARACTERS_PATH, chars);
     io.emit("characterUpdated", { id: payload.id, character: chars[idx] });
     io.emit("charactersUpdated", chars);
