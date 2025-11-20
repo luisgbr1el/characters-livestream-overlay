@@ -9,7 +9,10 @@ export default {
         heal: "Cura",
         damage: "Dano",
         copy_url: "Copiar URL",
-        settings: "Configurações"
+        settings: "Configurações",
+        manage: "Gerenciar",
+        import: "Importar",
+        export: "Exportar"
     },
     characters: {
         title: "Personagens",
@@ -35,7 +38,15 @@ export default {
         url_copy_error: "Não foi possível copiar a URL.",
         no_changes: "Nenhuma alteração detectada.",
         cannot_be_healed: "{name} não pode ser curado.",
-        cannot_take_damage: "{name} não pode tomar dano."
+        cannot_take_damage: "{name} não pode tomar dano.",
+        manage: "Gerenciar personagens",
+        created_at: "Criado em",
+        delete_batch_confirm: "Tem certeza que deseja deletar os personagens selecionados?",
+        select_one: "Selecione pelo menos um.",
+        imported_batch: "Personagens importados!",
+        deleted_batch: "Personagens deletados!",
+        exported_batch: "Personagens exportados!",
+        batch_operation_error: "Erro ao realizar operação em lote. Tente novamente."
     },
     settings: {
         title: "Configurações",

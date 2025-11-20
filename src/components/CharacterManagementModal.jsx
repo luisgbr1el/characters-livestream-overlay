@@ -120,7 +120,7 @@ function CharacterManagementModal({ isOpen, onClose, characters, onUpdateCharact
 
     const handleBatchDelete = async () => {
         if (!charactersSelected || charactersSelected.length === 0) {
-            showAlert('error', 'Selecione pelo menos um personagem para deletar.');
+            showAlert('error', t('characters.select_one'));
             return;
         }
 
@@ -136,14 +136,13 @@ function CharacterManagementModal({ isOpen, onClose, characters, onUpdateCharact
             if (response.ok) {
                 const updatedCharacters = charactersList.filter(character => !charactersSelected.includes(character.id));
                 onUpdateCharacters(updatedCharacters);
-                showAlert('success', 'Personagens deletados!');
+                showAlert('success', t('characters.deleted_batch'));
             } else {
                 console.error('Error deleting characters:', response.statusText);
-                showAlert('error', 'Ocorreu um erro ao deletar os personagens.');
+                showAlert('error', t('characters.batch_operation_error'));
             }
         } catch (error) {
-            console.error('Network error saving settings:', error);
-            showAlert('error', t('validation.save_error'));
+            console.error('Error:', error);
         }
 
         handleClose();
@@ -151,7 +150,7 @@ function CharacterManagementModal({ isOpen, onClose, characters, onUpdateCharact
 
     const handleBatchExport = async () => {
         if (!charactersSelected || charactersSelected.length === 0) {
-            showAlert('error', 'Selecione pelo menos um personagem para exportar.');
+            showAlert('error', t('characters.select_one'));
             return;
         }
 
@@ -182,14 +181,13 @@ function CharacterManagementModal({ isOpen, onClose, characters, onUpdateCharact
                 await writable.write(JSON.stringify(fileContent));
                 await writable.close();
 
-                showAlert('success', "Personagens exportados!");
+                showAlert('success', t('characters.exported_batch'));
             } else {
                 console.error('Error exporting characters:', response.statusText);
-                showAlert('error', 'Ocorreu um erro ao exportar os personagens.');
+                showAlert('error', t('characters.batch_operation_error'));
             }
         } catch (error) {
             console.error('User aborted operation:', error);
-            showAlert('error', "Operação cancelada pelo usuário.");
         }
     }
 
@@ -226,14 +224,13 @@ function CharacterManagementModal({ isOpen, onClose, characters, onUpdateCharact
                     onUpdateCharacters(updatedCharacters);
                 }
 
-                showAlert('success', "Personagens importados!");
+                showAlert('success', t('characters.imported_batch'));
             } else {
                 console.error('Error importing characters:', response.statusText);
-                showAlert('error', 'Ocorreu um erro ao importar os personagens.');
+                showAlert('error', t('characters.batch_operation_error'));
             }
         } catch (error) {
             console.error('User aborted operation:', error);
-            showAlert('error', "Operação cancelada pelo usuário.");
         }
     }
 
@@ -249,7 +246,7 @@ function CharacterManagementModal({ isOpen, onClose, characters, onUpdateCharact
         <>
             <div className="modal-overlay">
                 <div className="modal-content" style={{ maxWidth: "35%" }}>
-                    <h2 className="title">Gerenciar personagens</h2>
+                    <h2 className="title">{t('characters.manage')}</h2>
                     <form onSubmit={handleSubmit} style={{ marginBottom: 0 }}>
                         <div className="modal-row">
                             <div className="modal-full-width">
@@ -259,7 +256,7 @@ function CharacterManagementModal({ isOpen, onClose, characters, onUpdateCharact
                                             <input className="select-checkbox" type="checkbox" value="false" onChange={checkAll} />
                                             <p>{t('characters.name')}</p>
                                         </div>
-                                        <p>Criado em</p>
+                                        <p>{t('characters.created_at')}</p>
                                     </div>
                                     {charactersList.map((character, index) => (
                                         <div key={index} className="selectable-list-item">
@@ -300,14 +297,14 @@ function CharacterManagementModal({ isOpen, onClose, characters, onUpdateCharact
                     <div className="modal-actions">
                         <div id="hidden-actions" style={{ gap: '5px', display: 'none' }}>
                             <button className="button" type="button" onClick={handleBatchExport}>
-                                Exportar
+                                {t('common.export')}
                             </button>
                             <button className="button" type="button" onClick={handleOpenConfirmationModal}>
                                 {t('common.delete')}
                             </button>
                         </div>
                         <button id="import-button" className="button" type="button" onClick={handleBatchImport}>
-                            Importar
+                            {t('common.import')}
                         </button>
                         <button className="button" type="button" onClick={handleClose}>
                             {t('common.cancel')}
@@ -319,7 +316,7 @@ function CharacterManagementModal({ isOpen, onClose, characters, onUpdateCharact
                 isOpen={isConfirmationModalOpen}
                 onClose={handleCloseConfirmationModal}
                 onConfirm={handleBatchDelete}
-                text="Tem certeza que deseja deletar esses personagens?"
+                text={t('characters.delete_batch_confirm')}
                 confirmButtonText={t('common.delete')}
             />
         </>

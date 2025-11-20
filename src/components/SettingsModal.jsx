@@ -93,6 +93,7 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
             if (response.ok) {
                 changeLocale(language);
                 onUpdate(settingsData);
+                showAlert('success', t('settings.updated'))
             } else {
                 console.error('Error saving settings:', response.statusText);
                 showAlert('error', t('validation.save_error'));

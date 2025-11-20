@@ -169,7 +169,7 @@ function App() {
           <div style={{ display: 'flex', gap: '10px' }}>
             <button className='button' onClick={handleOpenCharacterMgmtModal}>
               <TbTools size={iconsSize} />
-              <p className='button-text'>Gerenciar</p>
+              <p className='button-text'>{t('common.manage')}</p>
             </button>
             <button className='button' onClick={handleOpenModal}>
               <TbPlus size={iconsSize} />

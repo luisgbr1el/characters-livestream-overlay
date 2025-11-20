@@ -9,7 +9,10 @@ export default {
         heal: "Heal",
         damage: "Damage",
         copy_url: "Copy URL",
-        settings: "Settings"
+        settings: "Settings",
+        manage: "Manage",
+        import: "Import",
+        export: "Export"
     },
     characters: {
         title: "Characters",
@@ -35,7 +38,15 @@ export default {
         url_copy_error: "Error copying the URL.",
         no_changes: "No changes detected.",
         cannot_be_healed: "{name} can't be healed.",
-        cannot_take_damage: "{name} can't take damage."
+        cannot_take_damage: "{name} can't take damage.",
+        manage: "Manage characters",
+        created_at: "Created at",
+        delete_batch_confirm: "Are you sure you want to delete all the selected characters?",
+        select_one: "Select at least one.",
+        imported_batch: "Characters imported!",
+        deleted_batch: "Characters deleted!",
+        exported_batch: "Characters exported!",
+        batch_operation_error: "Error while doing a batch operation. Please try again."
     },
     settings: {
         title: "Settings",
