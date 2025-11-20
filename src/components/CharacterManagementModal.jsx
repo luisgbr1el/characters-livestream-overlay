@@ -3,27 +3,51 @@ import '../styles/Modal.css';
 import { useI18n } from '../i18n/i18nContext';
 import { useAlert } from '../hooks/useAlert';
 import ConfirmationModal from './ConfirmationModal.jsx';
+import { TbUserHexagon } from "react-icons/tb";
 
 function CharacterManagementModal({ isOpen, onClose, characters, onUpdateCharacters }) {
     const { t, locale } = useI18n();
     const { showAlert } = useAlert();
     let [charactersSelected, setCharactersSelected] = useState([]);
     const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
+    const [iconExistsMap, setIconExistsMap] = useState({});
 
     useEffect(() => {
         if (isOpen) {
             setCharactersSelected([]);
+            checkAllIcons();
         }
-    }, [isOpen]);
+    }, [isOpen, characters]);
+
+    const checkAllIcons = async () => {
+        const existsMap = {};
+        for (const character of characters) {
+            if (character.icon) {
+                try {
+                    const response = await fetch(character.icon, { method: 'HEAD' });
+                    existsMap[character.id] = response.ok;
+                } catch (error) {
+                    existsMap[character.id] = false;
+                }
+            } else
+                existsMap[character.id] = false;
+        }
+        setIconExistsMap(existsMap);
+    };
 
     const toggleHiddenButtons = () => {
         let hiddenButtonsDiv = document.getElementById("hidden-actions");
+        let importButton = document.getElementById("import-button");
 
         if (hiddenButtonsDiv) {
-            if (charactersSelected.length > 0)
+            if (charactersSelected.length > 0) {
                 hiddenButtonsDiv.style.display = 'flex';
-            else
+                importButton.style.display = 'none';
+            }
+            else {
                 hiddenButtonsDiv.style.display = 'none';
+                importButton.style.display = 'block';
+            }
         }
     }
 
@@ -125,6 +149,94 @@ function CharacterManagementModal({ isOpen, onClose, characters, onUpdateCharact
         handleClose();
     }
 
+    const handleBatchExport = async () => {
+        if (!charactersSelected || charactersSelected.length === 0) {
+            showAlert('error', 'Selecione pelo menos um personagem para exportar.');
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:3000/api/characters/', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                let allCharacters = await response.json();
+                let fileContent = [];
+
+                charactersSelected.forEach(selectedId => {
+                    fileContent.push(allCharacters.filter(character => character.id == selectedId)[0]);
+                })
+
+                const fileHandle = await window.showSaveFilePicker({
+                    types: [{
+                        accept: { 'text/json': ['.json'] }
+                    }],
+                    suggestedName: 'characters.rpg.json'
+                });
+
+                const writable = await fileHandle.createWritable();
+                await writable.write(JSON.stringify(fileContent));
+                await writable.close();
+
+                showAlert('success', "Personagens exportados!");
+            } else {
+                console.error('Error exporting characters:', response.statusText);
+                showAlert('error', 'Ocorreu um erro ao exportar os personagens.');
+            }
+        } catch (error) {
+            console.error('User aborted operation:', error);
+            showAlert('error', "Operação cancelada pelo usuário.");
+        }
+    }
+
+    const handleBatchImport = async () => {
+        try {
+            const [fileHandle] = await window.showOpenFilePicker({
+                types: [{
+                    accept: { 'text/json': ['.json'] }
+                }]
+            });
+
+            const file = await fileHandle.getFile();
+            const fileContent = await file.text();
+            const charactersData = JSON.parse(fileContent);
+
+            const response = await fetch('http://localhost:3000/api/characters/batch', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ characters: charactersData })
+            });
+
+            if (response.ok) {
+                const charactersResponse = await fetch('http://localhost:3000/api/characters/', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (charactersResponse.ok) {
+                    const updatedCharacters = await charactersResponse.json();
+                    onUpdateCharacters(updatedCharacters);
+                }
+
+                showAlert('success', "Personagens importados!");
+            } else {
+                console.error('Error importing characters:', response.statusText);
+                showAlert('error', 'Ocorreu um erro ao importar os personagens.');
+            }
+        } catch (error) {
+            console.error('User aborted operation:', error);
+            showAlert('error', "Operação cancelada pelo usuário.");
+        }
+    }
+
     const handleOpenConfirmationModal = () => {
         setIsConfirmationModalOpen(true);
     };
@@ -136,12 +248,12 @@ function CharacterManagementModal({ isOpen, onClose, characters, onUpdateCharact
     return (
         <>
             <div className="modal-overlay">
-                <div className="modal-content">
+                <div className="modal-content" style={{ maxWidth: "35%" }}>
                     <h2 className="title">Gerenciar personagens</h2>
-                    <form onSubmit={handleSubmit}>
+                    <form onSubmit={handleSubmit} style={{ marginBottom: 0 }}>
                         <div className="modal-row">
                             <div className="modal-full-width">
-                                <div className='selectable-list' style={{ height: 'auto', maxHeight: '200px' }}>
+                                <div className='selectable-list' style={{ height: 'auto', maxHeight: '300px', padding: '0 10px 10px 0' }}>
                                     <div className="selectable-list-item" style={{ fontWeight: 'bold', paddingBottom: '10px', borderBottom: '1px solid var(--border-color)' }}>
                                         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                                             <input className="select-checkbox" type="checkbox" value="false" onChange={checkAll} />
@@ -153,7 +265,13 @@ function CharacterManagementModal({ isOpen, onClose, characters, onUpdateCharact
                                         <div key={index} className="selectable-list-item">
                                             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                                                 <input id={character.id} className="select-checkbox" type="checkbox" value="false" onChange={handleIndividualCheckboxChange} />
-                                                <img src={character.icon} className="selectable-list-icon" />
+                                                {(character.icon && iconExistsMap[character.id]) ? (
+                                                    <img src={character.icon} className="selectable-list-icon" />
+                                                ) : (
+                                                    <div className="selectable-list-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--background-secondary)' }}>
+                                                        <TbUserHexagon size={24} />
+                                                    </div>
+                                                )}
                                                 <p>{character.name}</p>
                                             </div>
                                             <p>{(() => {
@@ -181,13 +299,16 @@ function CharacterManagementModal({ isOpen, onClose, characters, onUpdateCharact
                     </form>
                     <div className="modal-actions">
                         <div id="hidden-actions" style={{ gap: '5px', display: 'none' }}>
-                            <button className="button" type="button" onClick={handleSubmit}>
+                            <button className="button" type="button" onClick={handleBatchExport}>
                                 Exportar
                             </button>
                             <button className="button" type="button" onClick={handleOpenConfirmationModal}>
                                 {t('common.delete')}
                             </button>
                         </div>
+                        <button id="import-button" className="button" type="button" onClick={handleBatchImport}>
+                            Importar
+                        </button>
                         <button className="button" type="button" onClick={handleClose}>
                             {t('common.cancel')}
                         </button>

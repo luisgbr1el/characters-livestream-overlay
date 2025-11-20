@@ -2,12 +2,18 @@ import '../styles/CharacterCard.css'
 import HealthBar from './HealthBar';
 import Tooltip from './Tooltip';
 import { useAlert } from '../hooks/useAlert.jsx';
-import { TbPencil, TbHeartPlus, TbHeartMinus, TbLink } from "react-icons/tb";
+import { TbPencil, TbHeartPlus, TbHeartMinus, TbLink, TbUserHexagon } from "react-icons/tb";
 import { useI18n } from '../i18n/i18nContext';
+import { useEffect, useState } from 'react';
 
 function CharacterCard({ id, name, icon, hp, maxHp, onEdit, onHeal, onDamage }) {
     const { t } = useI18n();
     const { showAlert } = useAlert();
+    const [iconExists, setIconExists] = useState(false);
+    
+    useEffect(() => {
+        checkIfIconExists();
+    }, [icon])
 
     const handleCopyUrl = () => {
         const url = "http://localhost:3000/overlay/" + id;
@@ -19,10 +25,33 @@ function CharacterCard({ id, name, icon, hp, maxHp, onEdit, onHeal, onDamage }) 
         });
     };
 
+    const checkIfIconExists = async () => {
+        if (!icon) {
+            setIconExists(false);
+            return;
+        }
+
+        try {
+            const response = await fetch(icon, { method: 'HEAD' });
+            setIconExists(response.ok);
+        } catch (error) {
+            console.error('Error checking icon existence:', error);
+            setIconExists(false);
+        }
+    }
+
     return (
         <>
             <div className="character-card">
-                <img src={icon} alt={`${name}'s icon`} className={`character-icon ${hp === 0 ? "black-and-white" : ""}`} />
+                {(icon && iconExists) ?
+                    (
+                        <img src={icon} alt={`${name}'s icon`} className={`character-icon ${hp === 0 ? "black-and-white" : ""}`} />
+                    )
+                    : (
+                        <div className="character-icon">
+                            <TbUserHexagon size={175} />
+                        </div>
+                    )}
                 <div className="character-info">
                     <h3 className="character-name">{name}</h3>
                     <div className="character-health">

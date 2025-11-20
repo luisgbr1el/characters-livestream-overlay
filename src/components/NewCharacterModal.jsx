@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import '../styles/Modal.css';
 import { MdOutlineImage } from "react-icons/md";
+import { TbUserHexagon } from "react-icons/tb";
 import FileSessionManager from '../utils/fileSessionManager.js';
 import { useI18n } from '../i18n/i18nContext';
 import { useAlert } from '../hooks/useAlert';
@@ -15,8 +16,24 @@ function NewCharacterModal({ isOpen, onClose, onCreate, onUpdate, isEditing = fa
     const [currentFileName, setCurrentFileName] = useState("");
     const { showAlert } = useAlert();
     const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
+    const [iconExists, setIconExists] = useState(false);
 
     const fileSessionRef = useRef(new FileSessionManager());
+
+    const checkIfIconExists = async (iconPath) => {
+        if (!iconPath) {
+            setIconExists(false);
+            return;
+        }
+
+        try {
+            const response = await fetch(iconPath, { method: 'HEAD' });
+            setIconExists(response.ok);
+        } catch (error) {
+            console.error('Error checking icon existence:', error);
+            setIconExists(false);
+        }
+    };
 
     const handleConfirmation = () => {
         onUpdate({ id: characterToEdit.id, delete: true });
@@ -30,7 +47,9 @@ function NewCharacterModal({ isOpen, onClose, onCreate, onUpdate, isEditing = fa
             setHealthPoints(characterToEdit.hp);
             setMaxHealthPoints(characterToEdit.maxHp);
             setCurrentFileName("");
-        }
+            checkIfIconExists(characterToEdit.icon);
+        } else
+            setIconExists(false);
     }, [isEditing, characterToEdit]);
 
     if (!isOpen) return null;
@@ -103,6 +122,7 @@ function NewCharacterModal({ isOpen, onClose, onCreate, onUpdate, isEditing = fa
                 const data = await fileSessionRef.current.uploadFile(file);
                 setIconUrl(data.url);
                 setCurrentFileName(data.fileName);
+                setIconExists(true);
             } catch (error) {
                 console.error('Upload error:', error);
                 showAlert('error', t('validation.upload_error'));
@@ -143,10 +163,17 @@ function NewCharacterModal({ isOpen, onClose, onCreate, onUpdate, isEditing = fa
                         <div className="modal-column">
                             <label>
                                 {t('characters.icon')}
-                                <div id="icon-preview-container" className={iconUrl ? 'has-image' : ''}>
+                                <div id="icon-preview-container" className={iconUrl && iconExists ? 'has-image' : ''}>
                                     <input type="file" accept="image/*" onChange={handlePhotoUpload} />
-                                    <MdOutlineImage size={60} />
-                                    {iconUrl && <img src={iconUrl} alt="Ícone do personagem" />}
+                                    {iconUrl && iconExists ? (
+                                        <img src={iconUrl} alt="Ícone do personagem" />
+                                    ) : iconUrl && !iconExists ? (
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '60px', height: '60px', backgroundColor: 'var(--background-secondary)', borderRadius: '4px' }}>
+                                            <TbUserHexagon size={40} />
+                                        </div>
+                                    ) : (
+                                        <MdOutlineImage size={60} />
+                                    )}
                                 </div>
                             </label>
                         </div>

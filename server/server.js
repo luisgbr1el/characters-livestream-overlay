@@ -248,7 +248,6 @@ app.post("/api/characters", (req, res) => {
   const newChar = req.body;
 
   if (!newChar.name) return res.status(400).json({ error: "name required" });
-  if (chars.find(c => c.name === newChar.name)) return res.status(409).json({ error: "Character already exists" });
 
   const characterWithId = {
     id: uuidv4(),
@@ -265,6 +264,107 @@ app.post("/api/characters", (req, res) => {
   writeJson(CHARACTERS_PATH, chars);
   io.emit("charactersUpdated", chars);
   res.status(201).json(chars);
+});
+
+app.post("/api/characters/batch", (req, res) => {
+  const { characters } = req.body;
+
+  if (!characters || !Array.isArray(characters) || characters.length === 0) {
+    return res.status(422).json({ error: "Invalid request format. Expected an array of characters in 'characters' property" });
+  }
+
+  const cleanedCharacters = characters.map(character => {
+    const { id, createdAt, ...cleanCharacter } = character;
+    return cleanCharacter;
+  });
+
+  const chars = readJson(CHARACTERS_PATH, defaultCharacters);
+  const createdCharacters = [];
+  const errors = [];
+
+  for (let i = 0; i < cleanedCharacters.length; i++) {
+    const newChar = cleanedCharacters[i];
+
+    if (!newChar || typeof newChar !== 'object') {
+      errors.push(`Character at index ${i}: Invalid character format - expected object`);
+      continue;
+    }
+
+    if (!newChar.name || typeof newChar.name !== 'string' || newChar.name.trim() === '') {
+      errors.push(`Character at index ${i}: name is required and must be a non-empty string`);
+      continue;
+    }
+
+    if (newChar.hp !== undefined) {
+      if (typeof newChar.hp !== 'number' || isNaN(newChar.hp) || newChar.hp < 0) {
+        errors.push(`Character at index ${i}: hp must be a non-negative number`);
+        continue;
+      }
+    }
+
+    if (newChar.maxHp !== undefined) {
+      if (typeof newChar.maxHp !== 'number' || isNaN(newChar.maxHp) || newChar.maxHp <= 0) {
+        errors.push(`Character at index ${i}: maxHp must be a positive number`);
+        continue;
+      }
+    }
+
+    if (newChar.hp !== undefined && newChar.maxHp !== undefined && newChar.hp > newChar.maxHp) {
+      errors.push(`Character at index ${i}: hp cannot be greater than maxHp`);
+      continue;
+    }
+
+    if (newChar.icon !== undefined) {
+      if (typeof newChar.icon !== 'string') {
+        errors.push(`Character at index ${i}: icon must be a string`);
+        continue;
+      }
+      if (newChar.icon !== '' && !newChar.icon.startsWith('/uploads/')) {
+        errors.push(`Character at index ${i}: icon path must start with '/uploads/' or be empty`);
+        continue;
+      }
+    }
+
+    const allowedFields = ['name', 'hp', 'maxHp', 'icon'];
+    const extraFields = Object.keys(newChar).filter(key => !allowedFields.includes(key));
+    if (extraFields.length > 0) {
+      errors.push(`Character at index ${i}: unexpected fields found: ${extraFields.join(', ')}. Only allowed: ${allowedFields.join(', ')}`);
+      continue;
+    }
+
+    const characterWithId = {
+      id: uuidv4(),
+      ...newChar,
+      createdAt: getLocalTimestamp()
+    };
+
+    if (characterWithId.icon) {
+      const fileName = characterWithId.icon.replace('/uploads/', '');
+      confirmFile(fileName);
+    }
+
+    createdCharacters.push(characterWithId);
+  }
+
+  if (errors.length > 0) {
+    return res.status(400).json({
+      error: "Validation failed",
+      details: errors,
+      createdCount: 0
+    });
+  }
+
+  chars.push(...createdCharacters);
+  writeJson(CHARACTERS_PATH, chars);
+
+  io.emit("charactersUpdated", chars);
+
+  res.status(201).json({
+    ok: true,
+    createdCount: createdCharacters.length,
+    createdCharacters: createdCharacters,
+    characters: chars
+  });
 });
 
 app.put("/api/characters/:id", (req, res) => {
