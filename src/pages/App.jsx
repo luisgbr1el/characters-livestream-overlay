@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { TbSettings, TbPlus, TbTools } from "react-icons/tb";
 import CharacterCard from '../components/CharacterCard.jsx'
 import NewCharacterModal from '../components/NewCharacterModal.jsx'
@@ -9,11 +9,16 @@ import '../styles/App.css'
 import charactersList from "../../server/data/characters.json"
 import { useI18n } from '../i18n/i18nContext';
 import { useAlert } from '../hooks/useAlert.jsx';
+import apiConfig from '../utils/apiConfig.js';
 
 function App() {
   const { t } = useI18n();
   const { showAlert } = useAlert();
   let [characters, setCharacters] = useState(charactersList);
+
+  useEffect(() => {
+    apiConfig.initialize();
+  }, []);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [characterToEdit, setCharacterToEdit] = useState(null);
@@ -82,7 +87,7 @@ function App() {
     }
 
     try {
-      const response = await fetch('http://localhost:3000/api/characters', {
+      const response = await fetch(apiConfig.getApiUrl('/characters'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -96,7 +101,8 @@ function App() {
       });
 
       if (response.ok) {
-        setCharacters([...characters, newCharacter]);
+        const createdCharacter = await response.json();
+        setCharacters([...characters, createdCharacter]);
         showAlert('success', t('characters.created'));
       } else
         showAlert('error', t('characters.create_error'));
@@ -108,7 +114,7 @@ function App() {
   const handleUpdateCharacter = async (updatedCharacter) => {
     if (updatedCharacter.delete) {
       try {
-        const response = await fetch(`http://localhost:3000/api/characters/${updatedCharacter.id}`, {
+        const response = await fetch(apiConfig.getApiUrl(`/characters/${updatedCharacter.id}`), {
           method: 'DELETE',
         });
 
@@ -129,7 +135,7 @@ function App() {
     }
 
     try {
-      const response = await fetch(`http://localhost:3000/api/characters/${updatedCharacter.id}`, {
+      const response = await fetch(apiConfig.getApiUrl(`/characters/${updatedCharacter.id}`), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -138,7 +144,8 @@ function App() {
           name: updatedCharacter.name,
           icon: updatedCharacter.icon,
           hp: updatedCharacter.hp,
-          maxHp: updatedCharacter.maxHp
+          maxHp: updatedCharacter.maxHp,
+          createdAt: updatedCharacter.createdAt
         })
       });
 

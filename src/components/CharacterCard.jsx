@@ -5,6 +5,7 @@ import { useAlert } from '../hooks/useAlert.jsx';
 import { TbPencil, TbHeartPlus, TbHeartMinus, TbLink, TbUserHexagon } from "react-icons/tb";
 import { useI18n } from '../i18n/i18nContext';
 import { useEffect, useState } from 'react';
+import apiConfig from '../utils/apiConfig.js';
 
 function CharacterCard({ id, name, icon, hp, maxHp, onEdit, onHeal, onDamage }) {
     const { t } = useI18n();
@@ -16,7 +17,7 @@ function CharacterCard({ id, name, icon, hp, maxHp, onEdit, onHeal, onDamage }) 
     }, [icon])
 
     const handleCopyUrl = () => {
-        const url = "http://localhost:3000/overlay/" + id;
+        const url = apiConfig.getOverlayUrl(id);
         navigator.clipboard.writeText(url).then(() => {
             showAlert('success', t('characters.url_copied'))
         }).catch(err => {

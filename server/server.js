@@ -6,6 +6,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
+import net from "net";
 import { readJson, writeJson } from "./utils/storage.js";
 
 const getLocalTimestamp = () => {
@@ -13,6 +14,32 @@ const getLocalTimestamp = () => {
   const offset = now.getTimezoneOffset();
   const localTime = new Date(now.getTime() - (offset * 60 * 1000));
   return localTime.toISOString();
+};
+
+const findAvailablePort = (startPort = 3000, maxPort = 3100) => {
+  return new Promise((resolve, reject) => {
+    const tryPort = (port) => {
+      if (port > maxPort) {
+        reject(new Error(`No available port found between ${startPort} and ${maxPort}`));
+        return;
+      }
+
+      const server = net.createServer();
+      
+      server.listen(port, () => {
+        server.once('close', () => {
+          resolve(port);
+        });
+        server.close();
+      });
+      
+      server.on('error', () => {
+        tryPort(port + 1);
+      });
+    };
+    
+    tryPort(startPort);
+  });
 };
 
 const app = express();
@@ -263,7 +290,7 @@ app.post("/api/characters", (req, res) => {
   chars.push(characterWithId);
   writeJson(CHARACTERS_PATH, chars);
   io.emit("charactersUpdated", chars);
-  res.status(201).json(chars);
+  res.status(201).json(characterWithId);
 });
 
 app.post("/api/characters/batch", (req, res) => {
@@ -393,7 +420,6 @@ app.put("/api/characters/:id", (req, res) => {
   }
 
   const updatedData = { ...req.body };
-  delete updatedData.createdAt;
 
   chars[idx] = { ...chars[idx], ...updatedData };
   writeJson(CHARACTERS_PATH, chars);
@@ -455,6 +481,9 @@ app.get("/overlay/:id", (req, res) => {
   const settings = readJson(SETTINGS_PATH, defaultSettings);
   const chars = readJson(CHARACTERS_PATH, defaultCharacters);
   const character = chars.find(c => c.id === id) || null;
+
+  if (!character)
+    return res.status(404).json({ error: "Character doesn't exists." });
 
   const fontSize = settings.overlay.font_size || 14;
   const fontFamily = settings.overlay.font_family || "Poppins";
@@ -658,7 +687,6 @@ io.on("connection", (socket) => {
     if (idx === -1) return;
 
     const updatedData = { ...payload.data };
-    delete updatedData.createdAt;
 
     chars[idx] = { ...chars[idx], ...updatedData };
     writeJson(CHARACTERS_PATH, chars);
@@ -667,7 +695,27 @@ io.on("connection", (socket) => {
   });
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+const startServer = async () => {
+  try {
+    const PORT = process.env.PORT || await findAvailablePort(3000, 3100);
+    
+    const corsOrigins = [
+      "http://localhost:5173",
+      `http://localhost:${PORT}`,
+      "http://localhost:3000",
+      "http://localhost:3001",
+    ];
+    
+    io.engine.opts.cors.origin = corsOrigins;
+    
+    server.listen(PORT, () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+      console.log(`Available ports checked: 3000-3100`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error.message);
+    process.exit(1);
+  }
+};
+
+startServer();

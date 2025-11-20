@@ -33,7 +33,7 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
 
     const fetchSettings = async () => {
         try {
-            const response = await fetch('http://localhost:3000/api/settings');
+            const response = await fetch(apiConfig.getApiUrl('/settings'));
             if (response.ok) {
                 const settings = await response.json();
                 setLanguage(settings.general.language);
@@ -82,7 +82,7 @@ function SettingsModal({ isOpen, onClose, onUpdate }) {
         };
 
         try {
-            const response = await fetch('http://localhost:3000/api/settings', {
+            const response = await fetch(apiConfig.getApiUrl('/settings'), {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

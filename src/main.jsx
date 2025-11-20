@@ -4,13 +4,16 @@ import './styles/index.css'
 import App from './pages/App.jsx'
 import { I18nProvider } from './i18n/i18nContext.jsx'
 import { AlertProvider } from './contexts/AlertContext.jsx'
+import apiConfig from './utils/apiConfig.js'
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <I18nProvider>
-      <AlertProvider>
-        <App />
-      </AlertProvider>
-    </I18nProvider>
-  </StrictMode>,
-)
+apiConfig.initialize().then(() => {
+  createRoot(document.getElementById('root')).render(
+    <StrictMode>
+      <I18nProvider>
+        <AlertProvider>
+          <App />
+        </AlertProvider>
+      </I18nProvider>
+    </StrictMode>,
+  );
+});

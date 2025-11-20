@@ -83,11 +83,11 @@ function NewCharacterModal({ isOpen, onClose, onCreate, onUpdate, isEditing = fa
             await fileSessionRef.current.confirmFile(currentFileName);
 
         if (isEditing) {
-            const { id, ...oldCharacterInfos } = characterToEdit;
+            const { id, createdAt, ...oldCharacterInfos } = characterToEdit;
             if (areObjectsEqual(oldCharacterInfos, characterData))
                 showAlert('error', t('characters.no_changes'));
             else {
-                onUpdate({ ...characterData, id: characterToEdit.id });
+                onUpdate({ ...characterData, id: characterToEdit.id, createdAt: characterToEdit.createdAt });
                 handleClose();
             }
         }

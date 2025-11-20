@@ -4,6 +4,7 @@ import { useI18n } from '../i18n/i18nContext';
 import { useAlert } from '../hooks/useAlert';
 import ConfirmationModal from './ConfirmationModal.jsx';
 import { TbUserHexagon } from "react-icons/tb";
+import apiConfig from '../utils/apiConfig.js';
 
 function CharacterManagementModal({ isOpen, onClose, characters, onUpdateCharacters }) {
     const { t, locale } = useI18n();
@@ -125,7 +126,7 @@ function CharacterManagementModal({ isOpen, onClose, characters, onUpdateCharact
         }
 
         try {
-            const response = await fetch('http://localhost:3000/api/characters/batch', {
+            const response = await fetch(apiConfig.getApiUrl('/characters/batch'), {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -155,7 +156,7 @@ function CharacterManagementModal({ isOpen, onClose, characters, onUpdateCharact
         }
 
         try {
-            const response = await fetch('http://localhost:3000/api/characters/', {
+            const response = await fetch(apiConfig.getApiUrl('/characters/'), {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
@@ -203,7 +204,7 @@ function CharacterManagementModal({ isOpen, onClose, characters, onUpdateCharact
             const fileContent = await file.text();
             const charactersData = JSON.parse(fileContent);
 
-            const response = await fetch('http://localhost:3000/api/characters/batch', {
+            const response = await fetch(apiConfig.getApiUrl('/characters/batch'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -212,7 +213,7 @@ function CharacterManagementModal({ isOpen, onClose, characters, onUpdateCharact
             });
 
             if (response.ok) {
-                const charactersResponse = await fetch('http://localhost:3000/api/characters/', {
+                const charactersResponse = await fetch(apiConfig.getApiUrl('/characters/'), {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json'
@@ -273,20 +274,29 @@ function CharacterManagementModal({ isOpen, onClose, characters, onUpdateCharact
                                             </div>
                                             <p>{(() => {
                                                 const isoString = character.createdAt;
-                                                const [datePart, timePart] = isoString.split('T');
-                                                const [year, month, day] = datePart.split('-');
-                                                const [time] = timePart.split('.');
-                                                const [hour, minute, second] = time.split(':');
+                                                
+                                                if (!isoString)
+                                                    return '--';
+                                                
+                                                try {
+                                                    const [datePart, timePart] = isoString.split('T');
+                                                    const [year, month, day] = datePart.split('-');
+                                                    const [time] = timePart.split('.');
+                                                    const [hour, minute, second] = time.split(':');
 
-                                                const localDate = new Date(year, month - 1, day, hour, minute, second);
+                                                    const localDate = new Date(year, month - 1, day, hour, minute, second);
 
-                                                return localDate.toLocaleString(locale, {
-                                                    day: '2-digit',
-                                                    month: '2-digit',
-                                                    year: 'numeric',
-                                                    hour: '2-digit',
-                                                    minute: '2-digit'
-                                                });
+                                                    return localDate.toLocaleString(locale, {
+                                                        day: '2-digit',
+                                                        month: '2-digit',
+                                                        year: 'numeric',
+                                                        hour: '2-digit',
+                                                        minute: '2-digit'
+                                                    });
+                                                } catch (error) {
+                                                    console.error('Error parsing date:', error);
+                                                    return '--';
+                                                }
                                             })()}</p>
                                         </div>
                                     ))}

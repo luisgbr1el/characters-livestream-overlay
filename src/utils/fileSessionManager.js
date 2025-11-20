@@ -1,3 +1,5 @@
+import apiConfig from './apiConfig.js';
+
 class FileSessionManager {
   constructor() {
     this.sessionId = this.generateSessionId();
@@ -12,7 +14,7 @@ class FileSessionManager {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await fetch('http://localhost:3000/api/upload', {
+    const response = await fetch(apiConfig.getApiUrl('/upload'), {
       method: 'POST',
       headers: {
         'X-Session-Id': this.sessionId
@@ -31,7 +33,7 @@ class FileSessionManager {
 
   async confirmFile(fileName) {
     try {
-      await fetch('http://localhost:3000/api/confirm-file', {
+      await fetch(apiConfig.getApiUrl('/confirm-file'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -46,7 +48,7 @@ class FileSessionManager {
 
   async cleanupSession() {
     try {
-      await fetch('http://localhost:3000/api/cleanup-session', {
+      await fetch(apiConfig.getApiUrl('/cleanup-session'), {
         method: 'DELETE',
         headers: {
           'X-Session-Id': this.sessionId
@@ -60,7 +62,7 @@ class FileSessionManager {
 
   async deleteFile(fileName) {
     try {
-      await fetch('http://localhost:3000/api/delete-file', {
+      await fetch(apiConfig.getApiUrl('/delete-file'), {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json'
